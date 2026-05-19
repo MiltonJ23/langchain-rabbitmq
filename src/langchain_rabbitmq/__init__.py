@@ -26,6 +26,7 @@ from langchain_rabbitmq.exceptions import (
     RabbitMQToolException,
     RabbitMQValidationError,
 )
+from langchain_rabbitmq.utilities import AsyncRabbitMQClient, RabbitMQClient
 
 try:
     __version__: str = version("langchain-rabbitmq")
@@ -35,6 +36,8 @@ except PackageNotFoundError:
 __all__: list[str] = [
     "__version__",
     "RabbitMQSettings",
+    "RabbitMQClient",
+    "AsyncRabbitMQClient",
     "ErrorCategory",
     "RabbitMQToolException",
     "RabbitMQConnectionError",
