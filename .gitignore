@@ -1,0 +1,32 @@
+# Binaries and build artifacts
+notification-service
+*.exe
+*.test
+*.out
+coverage.out
+coverage.html
+
+# Environment files (never commit real secrets)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Dependency cache
+vendor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keys (never commit private keys; public key is safe to commit if needed)
+keys/private.pem
+keys/*.key
+
+#Virtual Env
+procEnv/
