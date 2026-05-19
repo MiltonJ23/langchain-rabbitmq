@@ -84,6 +84,8 @@ class AsyncRabbitMQClient:
         self._settings: RabbitMQSettings = settings or RabbitMQSettings()
         self._connection: Optional[Any] = None  # aio_pika.RobustConnection
         self._channel: Optional[Any] = None  # aio_pika.RobustChannel
+        # Maps delivery_tag → IncomingMessage for manual ack/nack/reject
+        self._pending_messages: dict[int, Any] = {}
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -180,6 +182,7 @@ class AsyncRabbitMQClient:
 
         Idempotent — safe to call multiple times.
         """
+        self._pending_messages.clear()
         try:
             if self._channel is not None and not self._channel.is_closed:  # type: ignore[attr-defined]
                 await self._channel.close()  # type: ignore[attr-defined]
@@ -301,7 +304,7 @@ class AsyncRabbitMQClient:
                 if_unused=if_unused,
                 if_empty=if_empty,
             )
-            return int(result)  # type: ignore[arg-type]
+            return int(result.message_count)  # type: ignore[attr-defined]
         except Exception as exc:
             raise RabbitMQChannelError(
                 f"Failed to delete queue {name!r}: {exc}", cause=exc
@@ -323,8 +326,10 @@ class AsyncRabbitMQClient:
         _validate_amqp_name(name, "queue")
         channel = await self._require_channel()
         try:
-            result = await channel.queue_purge(queue_name=name)  # type: ignore[attr-defined]
-            return int(result)  # type: ignore[arg-type]
+            # Declare passive to get the aio-pika Queue object, then purge
+            q = await channel.declare_queue(name, passive=True)  # type: ignore[attr-defined]
+            result = await q.purge()  # type: ignore[attr-defined]
+            return int(result.message_count)  # type: ignore[attr-defined]
         except Exception as exc:
             raise RabbitMQChannelError(
                 f"Failed to purge queue {name!r}: {exc}", cause=exc
@@ -353,8 +358,9 @@ class AsyncRabbitMQClient:
         _validate_exchange_name(exchange)
         channel = await self._require_channel()
         try:
-            await channel.queue_bind(  # type: ignore[attr-defined]
-                queue=queue,
+            # Get the Queue object via passive declare, then call bind()
+            q = await channel.declare_queue(queue, passive=True)  # type: ignore[attr-defined]
+            await q.bind(  # type: ignore[attr-defined]
                 exchange=exchange,
                 routing_key=routing_key,
                 arguments=arguments or {},
@@ -388,8 +394,8 @@ class AsyncRabbitMQClient:
         _validate_exchange_name(exchange)
         channel = await self._require_channel()
         try:
-            await channel.queue_unbind(  # type: ignore[attr-defined]
-                queue=queue,
+            q = await channel.declare_queue(queue, passive=True)  # type: ignore[attr-defined]
+            await q.unbind(  # type: ignore[attr-defined]
                 exchange=exchange,
                 routing_key=routing_key,
                 arguments=arguments or {},
@@ -518,11 +524,13 @@ class AsyncRabbitMQClient:
         _validate_exchange_name(source)
         channel = await self._require_channel()
         try:
-            await channel.exchange_bind(  # type: ignore[attr-defined]
-                destination=destination,
-                source=source,
-                routing_key=routing_key,
-                arguments=arguments or {},
+            # Passive declare returns the Exchange object without creating it.
+            # The type argument is irrelevant for passive=True.
+            dest = await channel.declare_exchange(  # type: ignore[attr-defined]
+                destination, passive=True
+            )
+            await dest.bind(  # type: ignore[attr-defined]
+                source, routing_key=routing_key, arguments=arguments or {}
             )
             return BindingInfo(
                 source=source,
@@ -630,13 +638,18 @@ class AsyncRabbitMQClient:
         if msg is None:
             return None
 
+        delivery_tag = int(msg.delivery_tag)  # type: ignore[attr-defined]
+        # Store the raw IncomingMessage so callers can ack/nack/reject it.
+        if not auto_ack:
+            self._pending_messages[delivery_tag] = msg
+
         hdrs: dict[str, Any] = {}
         if msg.headers:  # type: ignore[attr-defined]
             hdrs = dict(msg.headers)  # type: ignore[attr-defined]
 
         return MessageResult(
             body=bytes(msg.body),  # type: ignore[attr-defined]
-            delivery_tag=int(msg.delivery_tag),  # type: ignore[attr-defined]
+            delivery_tag=delivery_tag,
             exchange=str(msg.exchange),  # type: ignore[attr-defined]
             routing_key=str(msg.routing_key),  # type: ignore[attr-defined]
             redelivered=bool(msg.redelivered),  # type: ignore[attr-defined]
@@ -655,11 +668,15 @@ class AsyncRabbitMQClient:
         Raises:
             RabbitMQMessageError: On channel errors.
         """
-        channel = await self._require_channel()
-        try:
-            await channel.basic_ack(  # type: ignore[attr-defined]
-                delivery_tag=delivery_tag, multiple=multiple
+        msg = self._pending_messages.pop(delivery_tag, None)
+        if msg is None:
+            raise RabbitMQMessageError(
+                f"No pending message for delivery_tag={delivery_tag}. "
+                "The message may have been auto-acked or already acknowledged.",
+                cause=None,
             )
+        try:
+            await msg.ack(multiple=multiple)  # type: ignore[attr-defined]
         except Exception as exc:
             raise RabbitMQMessageError(
                 f"Failed to ack delivery_tag={delivery_tag}: {exc}", cause=exc
@@ -682,11 +699,14 @@ class AsyncRabbitMQClient:
         Raises:
             RabbitMQMessageError: On channel errors.
         """
-        channel = await self._require_channel()
-        try:
-            await channel.basic_nack(  # type: ignore[attr-defined]
-                delivery_tag=delivery_tag, multiple=multiple, requeue=requeue
+        msg = self._pending_messages.pop(delivery_tag, None)
+        if msg is None:
+            raise RabbitMQMessageError(
+                f"No pending message for delivery_tag={delivery_tag}.",
+                cause=None,
             )
+        try:
+            await msg.nack(multiple=multiple, requeue=requeue)  # type: ignore[attr-defined]
         except Exception as exc:
             raise RabbitMQMessageError(
                 f"Failed to nack delivery_tag={delivery_tag}: {exc}", cause=exc
@@ -702,11 +722,14 @@ class AsyncRabbitMQClient:
         Raises:
             RabbitMQMessageError: On channel errors.
         """
-        channel = await self._require_channel()
-        try:
-            await channel.basic_reject(  # type: ignore[attr-defined]
-                delivery_tag=delivery_tag, requeue=requeue
+        msg = self._pending_messages.pop(delivery_tag, None)
+        if msg is None:
+            raise RabbitMQMessageError(
+                f"No pending message for delivery_tag={delivery_tag}.",
+                cause=None,
             )
+        try:
+            await msg.reject(requeue=requeue)  # type: ignore[attr-defined]
         except Exception as exc:
             raise RabbitMQMessageError(
                 f"Failed to reject delivery_tag={delivery_tag}: {exc}", cause=exc

@@ -171,7 +171,9 @@ class TestAsyncClientQueueManagement:
     @pytest.mark.asyncio
     async def test_delete_queue(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
-        mock_ch.queue_delete = AsyncMock(return_value=5)
+        mock_result = MagicMock()
+        mock_result.message_count = 5
+        mock_ch.queue_delete = AsyncMock(return_value=mock_result)
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
@@ -192,7 +194,11 @@ class TestAsyncClientQueueManagement:
     @pytest.mark.asyncio
     async def test_purge_queue(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
-        mock_ch.queue_purge = AsyncMock(return_value=10)
+        mock_queue = AsyncMock()
+        purge_result = MagicMock()
+        purge_result.message_count = 10
+        mock_queue.purge = AsyncMock(return_value=purge_result)
+        mock_ch.declare_queue = AsyncMock(return_value=mock_queue)
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
@@ -203,7 +209,9 @@ class TestAsyncClientQueueManagement:
     @pytest.mark.asyncio
     async def test_purge_queue_error(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
-        mock_ch.queue_purge = AsyncMock(side_effect=RuntimeError("fail"))
+        mock_queue = AsyncMock()
+        mock_queue.purge = AsyncMock(side_effect=RuntimeError("fail"))
+        mock_ch.declare_queue = AsyncMock(return_value=mock_queue)
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
@@ -213,18 +221,22 @@ class TestAsyncClientQueueManagement:
     @pytest.mark.asyncio
     async def test_bind_queue(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
-        mock_ch.queue_bind = AsyncMock()
+        mock_queue = AsyncMock()
+        mock_queue.bind = AsyncMock()
+        mock_ch.declare_queue = AsyncMock(return_value=mock_queue)
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
                 await client.bind_queue("orders", "events", "order.created")
 
-        mock_ch.queue_bind.assert_awaited_once()
+        mock_queue.bind.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_bind_queue_error(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
-        mock_ch.queue_bind = AsyncMock(side_effect=RuntimeError("fail"))
+        mock_queue = AsyncMock()
+        mock_queue.bind = AsyncMock(side_effect=RuntimeError("fail"))
+        mock_ch.declare_queue = AsyncMock(return_value=mock_queue)
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
@@ -234,18 +246,22 @@ class TestAsyncClientQueueManagement:
     @pytest.mark.asyncio
     async def test_unbind_queue(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
-        mock_ch.queue_unbind = AsyncMock()
+        mock_queue = AsyncMock()
+        mock_queue.unbind = AsyncMock()
+        mock_ch.declare_queue = AsyncMock(return_value=mock_queue)
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
                 await client.unbind_queue("orders", "events", "order.created")
 
-        mock_ch.queue_unbind.assert_awaited_once()
+        mock_queue.unbind.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_unbind_queue_error(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
-        mock_ch.queue_unbind = AsyncMock(side_effect=RuntimeError("fail"))
+        mock_queue = AsyncMock()
+        mock_queue.unbind = AsyncMock(side_effect=RuntimeError("fail"))
+        mock_ch.declare_queue = AsyncMock(return_value=mock_queue)
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
@@ -335,7 +351,9 @@ class TestAsyncClientExchangeManagement:
     @pytest.mark.asyncio
     async def test_bind_exchange(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
-        mock_ch.exchange_bind = AsyncMock()
+        mock_dest_exc = AsyncMock()
+        mock_dest_exc.bind = AsyncMock()
+        mock_ch.declare_exchange = AsyncMock(return_value=mock_dest_exc)
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
@@ -345,11 +363,14 @@ class TestAsyncClientExchangeManagement:
 
         assert info.source == "src"
         assert info.destination == "dest"
+        mock_dest_exc.bind.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_bind_exchange_error(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
-        mock_ch.exchange_bind = AsyncMock(side_effect=RuntimeError("fail"))
+        mock_dest_exc = AsyncMock()
+        mock_dest_exc.bind = AsyncMock(side_effect=RuntimeError("fail"))
+        mock_ch.declare_exchange = AsyncMock(return_value=mock_dest_exc)
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
@@ -500,66 +521,85 @@ class TestAsyncClientMessageOperations:
 
     @pytest.mark.asyncio
     async def test_ack_message(self, settings: RabbitMQSettings) -> None:
-        mock_conn, mock_ch = _make_async_infra()
-        mock_ch.basic_ack = AsyncMock()
+        mock_conn, _ = _make_async_infra()
+        mock_msg = AsyncMock()
+        mock_msg.ack = AsyncMock()
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
+                client._pending_messages[42] = mock_msg
                 await client.ack_message(42)
 
-        mock_ch.basic_ack.assert_awaited_once_with(delivery_tag=42, multiple=False)
+        mock_msg.ack.assert_awaited_once_with(multiple=False)
 
     @pytest.mark.asyncio
     async def test_ack_message_error(self, settings: RabbitMQSettings) -> None:
-        mock_conn, mock_ch = _make_async_infra()
-        mock_ch.basic_ack = AsyncMock(side_effect=RuntimeError("fail"))
+        mock_conn, _ = _make_async_infra()
+        mock_msg = AsyncMock()
+        mock_msg.ack = AsyncMock(side_effect=RuntimeError("fail"))
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
+                client._pending_messages[42] = mock_msg
                 with pytest.raises(RabbitMQMessageError, match="Failed to ack"):
                     await client.ack_message(42)
 
     @pytest.mark.asyncio
-    async def test_nack_message(self, settings: RabbitMQSettings) -> None:
-        mock_conn, mock_ch = _make_async_infra()
-        mock_ch.basic_nack = AsyncMock()
+    async def test_ack_message_no_pending(self, settings: RabbitMQSettings) -> None:
+        mock_conn, _ = _make_async_infra()
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
+                with pytest.raises(RabbitMQMessageError, match="No pending message"):
+                    await client.ack_message(99)
+
+    @pytest.mark.asyncio
+    async def test_nack_message(self, settings: RabbitMQSettings) -> None:
+        mock_conn, _ = _make_async_infra()
+        mock_msg = AsyncMock()
+        mock_msg.nack = AsyncMock()
+
+        with _patch_connect(mock_conn):
+            async with AsyncRabbitMQClient(settings) as client:
+                client._pending_messages[42] = mock_msg
                 await client.nack_message(42, multiple=True, requeue=False)
 
-        mock_ch.basic_nack.assert_awaited_once_with(
-            delivery_tag=42, multiple=True, requeue=False
-        )
+        mock_msg.nack.assert_awaited_once_with(multiple=True, requeue=False)
 
     @pytest.mark.asyncio
     async def test_nack_message_error(self, settings: RabbitMQSettings) -> None:
-        mock_conn, mock_ch = _make_async_infra()
-        mock_ch.basic_nack = AsyncMock(side_effect=RuntimeError("fail"))
+        mock_conn, _ = _make_async_infra()
+        mock_msg = AsyncMock()
+        mock_msg.nack = AsyncMock(side_effect=RuntimeError("fail"))
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
+                client._pending_messages[42] = mock_msg
                 with pytest.raises(RabbitMQMessageError, match="Failed to nack"):
                     await client.nack_message(42)
 
     @pytest.mark.asyncio
     async def test_reject_message(self, settings: RabbitMQSettings) -> None:
-        mock_conn, mock_ch = _make_async_infra()
-        mock_ch.basic_reject = AsyncMock()
+        mock_conn, _ = _make_async_infra()
+        mock_msg = AsyncMock()
+        mock_msg.reject = AsyncMock()
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
+                client._pending_messages[42] = mock_msg
                 await client.reject_message(42, requeue=False)
 
-        mock_ch.basic_reject.assert_awaited_once_with(delivery_tag=42, requeue=False)
+        mock_msg.reject.assert_awaited_once_with(requeue=False)
 
     @pytest.mark.asyncio
     async def test_reject_message_error(self, settings: RabbitMQSettings) -> None:
-        mock_conn, mock_ch = _make_async_infra()
-        mock_ch.basic_reject = AsyncMock(side_effect=RuntimeError("fail"))
+        mock_conn, _ = _make_async_infra()
+        mock_msg = AsyncMock()
+        mock_msg.reject = AsyncMock(side_effect=RuntimeError("fail"))
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
+                client._pending_messages[42] = mock_msg
                 with pytest.raises(RabbitMQMessageError, match="Failed to reject"):
                     await client.reject_message(42)
 
