@@ -16,9 +16,30 @@ Example:
 
 from importlib.metadata import PackageNotFoundError, version
 
+from langchain_rabbitmq.config import RabbitMQSettings
+from langchain_rabbitmq.exceptions import (
+    ErrorCategory,
+    RabbitMQAdminError,
+    RabbitMQChannelError,
+    RabbitMQConnectionError,
+    RabbitMQMessageError,
+    RabbitMQToolException,
+    RabbitMQValidationError,
+)
+
 try:
     __version__: str = version("langchain-rabbitmq")
 except PackageNotFoundError:
     __version__ = "0.0.0"
 
-__all__: list[str] = ["__version__"]
+__all__: list[str] = [
+    "__version__",
+    "RabbitMQSettings",
+    "ErrorCategory",
+    "RabbitMQToolException",
+    "RabbitMQConnectionError",
+    "RabbitMQChannelError",
+    "RabbitMQMessageError",
+    "RabbitMQAdminError",
+    "RabbitMQValidationError",
+]
