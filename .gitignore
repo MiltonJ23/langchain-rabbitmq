@@ -29,4 +29,4 @@ keys/private.pem
 keys/*.key
 
 #Virtual Env
-procEnv/
+lgrEnv/
