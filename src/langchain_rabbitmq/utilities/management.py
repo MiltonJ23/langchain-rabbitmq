@@ -89,7 +89,7 @@ class ManagementAPIClient:
                 base_url=self._settings.management_api_url,
                 auth=(
                     self._settings.effective_management_username,
-                    self._settings.effective_management_password.get_secret_value(),
+                    self._settings.effective_management_password,
                 ),
                 timeout=_DEFAULT_TIMEOUT,
             )
@@ -242,7 +242,7 @@ class AsyncManagementAPIClient:
                 base_url=self._settings.management_api_url,
                 auth=(
                     self._settings.effective_management_username,
-                    self._settings.effective_management_password.get_secret_value(),
+                    self._settings.effective_management_password,
                 ),
                 timeout=_DEFAULT_TIMEOUT,
             )
