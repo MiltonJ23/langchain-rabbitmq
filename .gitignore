@@ -28,5 +28,36 @@ Thumbs.db
 keys/private.pem
 keys/*.key
 
-#Virtual Env
+# Virtual environments
 procEnv/
+lgrEnv/
+.venv/
+venv/
+env/
+
+# Python build & distribution
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# Test & coverage artefacts
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Type-checker caches
+.pyright/
+.mypy_cache/
+pyrightconfig.json
+
+# Packaging / lock files (not committed unless pinned intentionally)
+uv.lock
+
+# Docs build output
+site/
