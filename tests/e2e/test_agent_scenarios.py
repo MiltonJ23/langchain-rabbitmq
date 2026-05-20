@@ -27,7 +27,6 @@ from langchain_rabbitmq.exceptions import RabbitMQConnectionError
 from langchain_rabbitmq.tools._base import _RabbitMQBaseTool
 from langchain_rabbitmq.tools.toolkit import RabbitMQToolkit
 
-
 # ---------------------------------------------------------------------------
 # Scenario 1 — declare queue then publish message
 # ---------------------------------------------------------------------------
@@ -76,28 +75,18 @@ class TestAgentDeclareAndPublish:
                         }
                     ],
                 ),
-                AIMessage(
-                    content="Declared queue 'orders' and published the JSON message."
-                ),
+                AIMessage(content="Declared queue 'orders' and published the JSON message."),
             ]
         )
 
         agent = create_agent(llm, tools)
-        with patch.object(
-            _RabbitMQBaseTool, "_make_client", return_value=mock_sync_client
-        ):
+        with patch.object(_RabbitMQBaseTool, "_make_client", return_value=mock_sync_client):
             result = agent.invoke(
-                {
-                    "messages": [
-                        ("user", "Declare queue 'orders' and publish a JSON message.")
-                    ]
-                }
+                {"messages": [("user", "Declare queue 'orders' and publish a JSON message.")]}
             )
 
         messages = result["messages"]
-        assert messages[-1].content == (
-            "Declared queue 'orders' and published the JSON message."
-        )
+        assert messages[-1].content == ("Declared queue 'orders' and published the JSON message.")
         mock_sync_client.declare_queue.assert_called_once()
         mock_sync_client.publish_message.assert_called_once()
 
@@ -129,12 +118,8 @@ class TestAgentDeclareAndPublish:
         )
 
         agent = create_agent(llm, tools)
-        with patch.object(
-            _RabbitMQBaseTool, "_make_client", return_value=mock_sync_client
-        ):
-            result = agent.invoke(
-                {"messages": [("user", "Declare a test queue.")]}
-            )
+        with patch.object(_RabbitMQBaseTool, "_make_client", return_value=mock_sync_client):
+            result = agent.invoke({"messages": [("user", "Declare a test queue.")]})
 
         # Message sequence: HumanMessage → AIMessage (tool_call) → ToolMessage → AIMessage
         assert len(result["messages"]) == 4
@@ -174,9 +159,7 @@ class TestAgentDeclareAndPublish:
         )
 
         agent = create_agent(llm, tools)
-        with patch.object(
-            _RabbitMQBaseTool, "_make_client", return_value=mock_sync_client
-        ):
+        with patch.object(_RabbitMQBaseTool, "_make_client", return_value=mock_sync_client):
             agent.invoke({"messages": [("user", "Declare invoices queue.")]})
 
         mock_sync_client.declare_queue.assert_called_once()
@@ -203,9 +186,7 @@ class TestAgentListQueues:
         ]
         return mock_mgmt
 
-    def test_agent_list_queues(
-        self, mock_settings: Any, sequence_llm_factory: Any
-    ) -> None:
+    def test_agent_list_queues(self, mock_settings: Any, sequence_llm_factory: Any) -> None:
         toolkit = RabbitMQToolkit(settings=mock_settings)
         tools = toolkit.get_tools()
         mock_mgmt = self._make_mgmt_mock()
@@ -223,22 +204,15 @@ class TestAgentListQueues:
                         }
                     ],
                 ),
-                AIMessage(
-                    content="There are 2 queues: orders and notifications."
-                ),
+                AIMessage(content="There are 2 queues: orders and notifications."),
             ]
         )
 
         agent = create_agent(llm, tools)
-        with patch.object(
-            admin_module, "ManagementAPIClient", return_value=mock_mgmt
-        ):
+        with patch.object(admin_module, "ManagementAPIClient", return_value=mock_mgmt):
             result = agent.invoke({"messages": [("user", "List all queues.")]})
 
-        assert (
-            result["messages"][-1].content
-            == "There are 2 queues: orders and notifications."
-        )
+        assert result["messages"][-1].content == "There are 2 queues: orders and notifications."
         tool_msg = result["messages"][2]
         assert "orders" in tool_msg.content
         assert "notifications" in tool_msg.content
@@ -273,9 +247,7 @@ class TestAgentListQueues:
         )
 
         agent = create_agent(llm, tools)
-        with patch.object(
-            admin_module, "ManagementAPIClient", return_value=mock_mgmt
-        ):
+        with patch.object(admin_module, "ManagementAPIClient", return_value=mock_mgmt):
             result = agent.invoke({"messages": [("user", "Are there any queues?")]})
 
         tool_msg = result["messages"][2]
@@ -318,14 +290,10 @@ class TestAgentHealthCheck:
         )
 
         agent = create_agent(llm, tools)
-        with patch.object(
-            _RabbitMQBaseTool, "_make_client", return_value=mock_sync_client
-        ):
+        with patch.object(_RabbitMQBaseTool, "_make_client", return_value=mock_sync_client):
             result = agent.invoke({"messages": [("user", "Check broker health.")]})
 
-        assert (
-            result["messages"][-1].content == "The broker is healthy and responsive."
-        )
+        assert result["messages"][-1].content == "The broker is healthy and responsive."
         tool_msg = result["messages"][2]
         assert "OK" in tool_msg.content
 
@@ -339,9 +307,7 @@ class TestAgentHealthCheck:
         error_client = MagicMock()
         error_client.__enter__ = MagicMock(return_value=error_client)
         error_client.__exit__ = MagicMock(return_value=False)
-        error_client.check_health.side_effect = RabbitMQConnectionError(
-            "broker unreachable"
-        )
+        error_client.check_health.side_effect = RabbitMQConnectionError("broker unreachable")
 
         llm = sequence_llm_factory(
             [
@@ -361,9 +327,7 @@ class TestAgentHealthCheck:
         )
 
         agent = create_agent(llm, tools)
-        with patch.object(
-            _RabbitMQBaseTool, "_make_client", return_value=error_client
-        ):
+        with patch.object(_RabbitMQBaseTool, "_make_client", return_value=error_client):
             result = agent.invoke({"messages": [("user", "Check broker health.")]})
 
         # Agent must complete (4 messages) even when the tool returns an error
@@ -411,21 +375,13 @@ class TestAgentHealthCheck:
         )
 
         agent = create_agent(llm, tools)
-        with patch.object(
-            _RabbitMQBaseTool, "_make_client", return_value=mock_sync_client
-        ):
+        with patch.object(_RabbitMQBaseTool, "_make_client", return_value=mock_sync_client):
             result = agent.invoke(
-                {
-                    "messages": [
-                        ("user", "Check health, then declare queue 'verified-q'.")
-                    ]
-                }
+                {"messages": [("user", "Check health, then declare queue 'verified-q'.")]}
             )
 
         # 6 messages: Human, AI(tool), Tool, AI(tool), Tool, AI(final)
         assert len(result["messages"]) == 6
-        assert result["messages"][-1].content == (
-            "Broker healthy; queue 'verified-q' is ready."
-        )
+        assert result["messages"][-1].content == ("Broker healthy; queue 'verified-q' is ready.")
         mock_sync_client.check_health.assert_called_once()
         mock_sync_client.declare_queue.assert_called_once()

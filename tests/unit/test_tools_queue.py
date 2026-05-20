@@ -2,26 +2,27 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-from langchain_rabbitmq.config import RabbitMQSettings
 from langchain_rabbitmq.exceptions import (
     RabbitMQChannelError,
     RabbitMQConnectionError,
     RabbitMQValidationError,
 )
 from langchain_rabbitmq.tools.queue import (
+    QUEUE_TOOLS,
     BindQueueTool,
     DeclareQueueTool,
     DeleteQueueTool,
     GetQueueInfoTool,
     PurgeQueueTool,
-    QUEUE_TOOLS,
     UnbindQueueTool,
 )
 from langchain_rabbitmq.utilities._models import QueueInfo
+
+if TYPE_CHECKING:
+    from langchain_rabbitmq.config import RabbitMQSettings
 
 
 def _mock_client(
@@ -171,9 +172,7 @@ class TestQueueToolsList:
 
 
 class TestBaseToolErrorHandling:
-    def test_unexpected_exception_returns_internal_error(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    def test_unexpected_exception_returns_internal_error(self, settings: RabbitMQSettings) -> None:
         mock = _mock_client()
         mock.declare_queue.side_effect = RuntimeError("totally unexpected")
         tool = DeclareQueueTool(settings=settings)

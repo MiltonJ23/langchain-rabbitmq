@@ -51,13 +51,9 @@ class TestEncodeVhost:
 
 
 class TestManagementAPIClientLifecycle:
-    def test_context_manager_opens_and_closes(
-        self, mgmt_settings: RabbitMQSettings
-    ) -> None:
+    def test_context_manager_opens_and_closes(self, mgmt_settings: RabbitMQSettings) -> None:
         with respx.mock:
-            respx.get(f"{_BASE}/api/queues").mock(
-                return_value=httpx.Response(200, json=[])
-            )
+            respx.get(f"{_BASE}/api/queues").mock(return_value=httpx.Response(200, json=[]))
             with ManagementAPIClient(mgmt_settings) as client:
                 assert client._client is not None
                 assert not client._client.is_closed
@@ -96,26 +92,22 @@ class TestManagementAPIClientListQueues:
         assert queues[0]["name"] == "q"
 
     @respx.mock
-    def test_http_error_raises_admin_error(
-        self, mgmt_settings: RabbitMQSettings
-    ) -> None:
-        respx.get(f"{_BASE}/api/queues").mock(
-            return_value=httpx.Response(401, text="Unauthorized")
-        )
-        with ManagementAPIClient(mgmt_settings) as client:
-            with pytest.raises(RabbitMQAdminError, match="401"):
-                client.list_queues()
+    def test_http_error_raises_admin_error(self, mgmt_settings: RabbitMQSettings) -> None:
+        respx.get(f"{_BASE}/api/queues").mock(return_value=httpx.Response(401, text="Unauthorized"))
+        with (
+            ManagementAPIClient(mgmt_settings) as client,
+            pytest.raises(RabbitMQAdminError, match="401"),
+        ):
+            client.list_queues()
 
     @respx.mock
-    def test_request_error_raises_admin_error(
-        self, mgmt_settings: RabbitMQSettings
-    ) -> None:
-        respx.get(f"{_BASE}/api/queues").mock(
-            side_effect=httpx.ConnectError("refused")
-        )
-        with ManagementAPIClient(mgmt_settings) as client:
-            with pytest.raises(RabbitMQAdminError, match="request failed"):
-                client.list_queues()
+    def test_request_error_raises_admin_error(self, mgmt_settings: RabbitMQSettings) -> None:
+        respx.get(f"{_BASE}/api/queues").mock(side_effect=httpx.ConnectError("refused"))
+        with (
+            ManagementAPIClient(mgmt_settings) as client,
+            pytest.raises(RabbitMQAdminError, match="request failed"),
+        ):
+            client.list_queues()
 
 
 class TestManagementAPIClientListExchanges:
@@ -188,12 +180,8 @@ class TestManagementAPIClientGetOverview:
 class TestAsyncManagementAPIClientLifecycle:
     @pytest.mark.asyncio
     @respx.mock
-    async def test_async_context_manager(
-        self, mgmt_settings: RabbitMQSettings
-    ) -> None:
-        respx.get(f"{_BASE}/api/queues").mock(
-            return_value=httpx.Response(200, json=[])
-        )
+    async def test_async_context_manager(self, mgmt_settings: RabbitMQSettings) -> None:
+        respx.get(f"{_BASE}/api/queues").mock(return_value=httpx.Response(200, json=[]))
         async with AsyncManagementAPIClient(mgmt_settings) as client:
             assert client._client is not None
         assert client._client is None
@@ -218,9 +206,7 @@ class TestAsyncManagementAPIClientMethods:
 
     @pytest.mark.asyncio
     @respx.mock
-    async def test_list_queues_with_vhost_async(
-        self, mgmt_settings: RabbitMQSettings
-    ) -> None:
+    async def test_list_queues_with_vhost_async(self, mgmt_settings: RabbitMQSettings) -> None:
         respx.get(f"{_BASE}/api/queues/%2F").mock(
             return_value=httpx.Response(200, json=[{"name": "vq"}])
         )
@@ -273,9 +259,7 @@ class TestAsyncManagementAPIClientMethods:
     async def test_http_error_raises_admin_error_async(
         self, mgmt_settings: RabbitMQSettings
     ) -> None:
-        respx.get(f"{_BASE}/api/queues").mock(
-            return_value=httpx.Response(403, text="Forbidden")
-        )
+        respx.get(f"{_BASE}/api/queues").mock(return_value=httpx.Response(403, text="Forbidden"))
         async with AsyncManagementAPIClient(mgmt_settings) as client:
             with pytest.raises(RabbitMQAdminError, match="403"):
                 await client.list_queues()
@@ -285,9 +269,7 @@ class TestAsyncManagementAPIClientMethods:
     async def test_request_error_raises_admin_error_async(
         self, mgmt_settings: RabbitMQSettings
     ) -> None:
-        respx.get(f"{_BASE}/api/queues").mock(
-            side_effect=httpx.ConnectError("timeout")
-        )
+        respx.get(f"{_BASE}/api/queues").mock(side_effect=httpx.ConnectError("timeout"))
         async with AsyncManagementAPIClient(mgmt_settings) as client:
             with pytest.raises(RabbitMQAdminError, match="request failed"):
                 await client.list_queues()

@@ -12,15 +12,17 @@ Skip entire session when Docker is unavailable::
 from __future__ import annotations
 
 import time
-from typing import Generator
+from typing import TYPE_CHECKING
 
-import pika  # type: ignore[import-untyped]
 import pytest
 from testcontainers.rabbitmq import RabbitMqContainer
 
 from langchain_rabbitmq.config import RabbitMQSettings
 from langchain_rabbitmq.utilities.async_rabbitmq import AsyncRabbitMQClient
 from langchain_rabbitmq.utilities.rabbitmq import RabbitMQClient
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 # ---------------------------------------------------------------------------
 # RabbitMQ container (AMQP only — fast start, plain image)

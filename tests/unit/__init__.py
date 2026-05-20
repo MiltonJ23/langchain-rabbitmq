@@ -1,1 +1,1 @@
-"""Unit tests – all external dependencies are mocked."""
+"""Unit tests - all external dependencies are mocked."""

@@ -7,14 +7,17 @@ through uniquely-named transient queues that are cleaned up in teardown.
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 import pytest
 
 from langchain_rabbitmq.utilities._models import ExchangeType
-from langchain_rabbitmq.utilities.async_rabbitmq import AsyncRabbitMQClient
-from langchain_rabbitmq.utilities.rabbitmq import RabbitMQClient
 
 from .conftest import _unique_name
+
+if TYPE_CHECKING:
+    from langchain_rabbitmq.utilities.async_rabbitmq import AsyncRabbitMQClient
+    from langchain_rabbitmq.utilities.rabbitmq import RabbitMQClient
 
 pytestmark = pytest.mark.integration
 
@@ -29,9 +32,7 @@ class TestSyncMessageCycle:
         queue = _unique_name("test.msg.text")
         sync_client.declare_queue(queue, durable=False)
 
-        sync_client.publish_message(
-            exchange="", routing_key=queue, body=b"hello world"
-        )
+        sync_client.publish_message(exchange="", routing_key=queue, body=b"hello world")
         result = sync_client.consume_message(queue, auto_ack=True)
         assert result is not None
         assert result.body == b"hello world"
@@ -57,9 +58,7 @@ class TestSyncMessageCycle:
 
         sync_client.delete_queue(queue)
 
-    def test_consume_empty_queue_returns_none(
-        self, sync_client: RabbitMQClient
-    ) -> None:
+    def test_consume_empty_queue_returns_none(self, sync_client: RabbitMQClient) -> None:
         queue = _unique_name("test.msg.empty")
         sync_client.declare_queue(queue, durable=False)
 
@@ -114,9 +113,7 @@ class TestSyncMessageCycle:
         queue = _unique_name("test.msg.reject")
         sync_client.declare_queue(queue, durable=False)
 
-        sync_client.publish_message(
-            exchange="", routing_key=queue, body=b"reject-me"
-        )
+        sync_client.publish_message(exchange="", routing_key=queue, body=b"reject-me")
         result = sync_client.consume_message(queue, auto_ack=False)
         assert result is not None
 
@@ -168,9 +165,7 @@ class TestSyncMessageCycle:
         sync_client.declare_queue(queue, durable=False)
 
         for i in range(10):
-            sync_client.publish_message(
-                exchange="", routing_key=queue, body=f"msg-{i}".encode()
-            )
+            sync_client.publish_message(exchange="", routing_key=queue, body=f"msg-{i}".encode())
 
         purged = sync_client.purge_queue(queue)
         assert purged == 10
@@ -185,9 +180,7 @@ class TestSyncMessageCycle:
 
 class TestAsyncMessageCycle:
     @pytest.mark.asyncio
-    async def test_publish_and_consume_async(
-        self, async_client: AsyncRabbitMQClient
-    ) -> None:
+    async def test_publish_and_consume_async(self, async_client: AsyncRabbitMQClient) -> None:
         queue = _unique_name("test.amsg")
         await async_client.declare_queue(queue, durable=False)
 
@@ -223,9 +216,7 @@ class TestAsyncMessageCycle:
         await async_client.delete_queue(queue)
 
     @pytest.mark.asyncio
-    async def test_nack_requeue_async(
-        self, async_client: AsyncRabbitMQClient
-    ) -> None:
+    async def test_nack_requeue_async(self, async_client: AsyncRabbitMQClient) -> None:
         queue = _unique_name("test.amsg.nack")
         await async_client.declare_queue(queue, durable=False)
 

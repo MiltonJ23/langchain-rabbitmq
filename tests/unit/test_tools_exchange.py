@@ -2,22 +2,23 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-from langchain_rabbitmq.config import RabbitMQSettings
 from langchain_rabbitmq.exceptions import (
     RabbitMQChannelError,
     RabbitMQValidationError,
 )
 from langchain_rabbitmq.tools.exchange import (
+    EXCHANGE_TOOLS,
     BindExchangeTool,
     DeclareExchangeTool,
     DeleteExchangeTool,
-    EXCHANGE_TOOLS,
 )
 from langchain_rabbitmq.utilities._models import BindingInfo, ExchangeInfo, ExchangeType
+
+if TYPE_CHECKING:
+    from langchain_rabbitmq.config import RabbitMQSettings
 
 
 def _mock_client(
@@ -123,9 +124,7 @@ class TestBindExchangeTool:
         )
         tool = BindExchangeTool(settings=settings)
         with patch.object(tool, "_make_client", return_value=mock):
-            result = tool.invoke(
-                {"destination": "dst-ex", "source": "src-ex", "routing_key": "rk"}
-            )
+            result = tool.invoke({"destination": "dst-ex", "source": "src-ex", "routing_key": "rk"})
         assert "dst-ex" in result or "bound" in result.lower()
 
     def test_validation_error_returned_as_string(self, settings: RabbitMQSettings) -> None:

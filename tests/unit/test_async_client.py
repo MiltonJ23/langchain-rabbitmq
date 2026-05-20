@@ -66,7 +66,7 @@ def _patch_connect(mock_connection: AsyncMock) -> Any:
 class TestAsyncClientLifecycle:
     @pytest.mark.asyncio
     async def test_connect_and_close(self, settings: RabbitMQSettings) -> None:
-        mock_conn, mock_ch = _make_async_infra()
+        mock_conn, _mock_ch = _make_async_infra()
         with _patch_connect(mock_conn):
             client = AsyncRabbitMQClient(settings)
             await client.connect()
@@ -90,9 +90,7 @@ class TestAsyncClientLifecycle:
         await client.close()
 
     @pytest.mark.asyncio
-    async def test_close_suppresses_channel_error(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_close_suppresses_channel_error(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
         mock_ch.close.side_effect = RuntimeError("channel gone")
         with _patch_connect(mock_conn):
@@ -153,15 +151,11 @@ class TestAsyncClientQueueManagement:
         assert info.durable is True
 
     @pytest.mark.asyncio
-    async def test_declare_queue_channel_error(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_declare_queue_channel_error(self, settings: RabbitMQSettings) -> None:
         import aio_pika.exceptions as aio_exc  # type: ignore[import-untyped]
 
         mock_conn, mock_ch = _make_async_infra()
-        mock_ch.declare_queue = AsyncMock(
-            side_effect=aio_exc.ChannelNotFoundEntity("no queue")
-        )
+        mock_ch.declare_queue = AsyncMock(side_effect=aio_exc.ChannelNotFoundEntity("no queue"))
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
@@ -265,9 +259,7 @@ class TestAsyncClientQueueManagement:
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
-                with pytest.raises(
-                    RabbitMQChannelError, match="Failed to unbind queue"
-                ):
+                with pytest.raises(RabbitMQChannelError, match="Failed to unbind queue"):
                     await client.unbind_queue("orders", "events")
 
     @pytest.mark.asyncio
@@ -320,9 +312,7 @@ class TestAsyncClientExchangeManagement:
             patch(f"{_MODULE}.aio_pika.ExchangeType", side_effect=lambda v: v),
         ):
             async with AsyncRabbitMQClient(settings) as client:
-                with pytest.raises(
-                    RabbitMQChannelError, match="Failed to declare exchange"
-                ):
+                with pytest.raises(RabbitMQChannelError, match="Failed to declare exchange"):
                     await client.declare_exchange("events")
 
     @pytest.mark.asyncio
@@ -343,9 +333,7 @@ class TestAsyncClientExchangeManagement:
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
-                with pytest.raises(
-                    RabbitMQChannelError, match="Failed to delete exchange"
-                ):
+                with pytest.raises(RabbitMQChannelError, match="Failed to delete exchange"):
                     await client.delete_exchange("events")
 
     @pytest.mark.asyncio
@@ -385,9 +373,7 @@ class TestAsyncClientExchangeManagement:
 
 class TestAsyncClientMessageOperations:
     @pytest.mark.asyncio
-    async def test_publish_to_named_exchange(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_publish_to_named_exchange(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
         mock_exch = AsyncMock()
         mock_ch.get_exchange = AsyncMock(return_value=mock_exch)
@@ -408,9 +394,7 @@ class TestAsyncClientMessageOperations:
         mock_exch.publish.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_publish_to_default_exchange(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_publish_to_default_exchange(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
         mock_ch.default_exchange = AsyncMock()
 
@@ -430,9 +414,7 @@ class TestAsyncClientMessageOperations:
         mock_ch.default_exchange.publish.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_publish_error_raises_message_error(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_publish_error_raises_message_error(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
         mock_ch.get_exchange = AsyncMock(side_effect=RuntimeError("fail"))
 
@@ -451,9 +433,7 @@ class TestAsyncClientMessageOperations:
                     await client.publish_message("events", "rk", b"body")
 
     @pytest.mark.asyncio
-    async def test_consume_message_returns_result(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_consume_message_returns_result(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
         mock_msg = MagicMock()
         mock_msg.body = b"hello"
@@ -623,13 +603,9 @@ class TestAsyncClientHealthAndInfo:
         assert health.status == HealthStatus.OK
 
     @pytest.mark.asyncio
-    async def test_check_health_down_on_connection_error(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_check_health_down_on_connection_error(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
-        mock_ch.declare_queue = AsyncMock(
-            side_effect=RabbitMQConnectionError("down", cause=None)
-        )
+        mock_ch.declare_queue = AsyncMock(side_effect=RabbitMQConnectionError("down", cause=None))
 
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
@@ -638,9 +614,7 @@ class TestAsyncClientHealthAndInfo:
         assert health.status == HealthStatus.DOWN
 
     @pytest.mark.asyncio
-    async def test_check_health_degraded_on_generic_error(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_check_health_degraded_on_generic_error(self, settings: RabbitMQSettings) -> None:
         mock_conn, mock_ch = _make_async_infra()
         mock_ch.declare_queue = AsyncMock(side_effect=RuntimeError("partial"))
 
@@ -651,9 +625,7 @@ class TestAsyncClientHealthAndInfo:
         assert health.status == HealthStatus.DEGRADED
 
     @pytest.mark.asyncio
-    async def test_get_connection_info_connected(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_get_connection_info_connected(self, settings: RabbitMQSettings) -> None:
         mock_conn, _ = _make_async_infra()
         with _patch_connect(mock_conn):
             async with AsyncRabbitMQClient(settings) as client:
@@ -664,17 +636,13 @@ class TestAsyncClientHealthAndInfo:
         assert info.host == "localhost"
 
     @pytest.mark.asyncio
-    async def test_get_connection_info_not_connected(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_get_connection_info_not_connected(self, settings: RabbitMQSettings) -> None:
         client = AsyncRabbitMQClient(settings)
         info = await client.get_connection_info()
         assert info.connected is False
 
     @pytest.mark.asyncio
-    async def test_get_connection_info_closed_connection(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_get_connection_info_closed_connection(self, settings: RabbitMQSettings) -> None:
         mock_conn, _ = _make_async_infra()
         mock_conn.is_closed = True
         with _patch_connect(mock_conn):
@@ -692,9 +660,7 @@ class TestAsyncClientHealthAndInfo:
 
 class TestAsyncClientSSL:
     @pytest.mark.asyncio
-    async def test_no_ssl_returns_none_context(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_no_ssl_returns_none_context(self, settings: RabbitMQSettings) -> None:
         client = AsyncRabbitMQClient(settings)
         ctx = client._build_ssl_context()
         assert ctx is None

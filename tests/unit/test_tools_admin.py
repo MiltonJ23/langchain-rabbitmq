@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import TYPE_CHECKING, Any
+from unittest.mock import MagicMock, patch
 
-import pytest
-
-from langchain_rabbitmq.config import RabbitMQSettings
-from langchain_rabbitmq.exceptions import RabbitMQAdminError, RabbitMQConnectionError
+from langchain_rabbitmq.exceptions import RabbitMQConnectionError
 from langchain_rabbitmq.tools.admin import (
     ADMIN_TOOLS,
     CheckHealthTool,
@@ -25,6 +22,8 @@ from langchain_rabbitmq.utilities._models import (
     HealthStatus,
 )
 
+if TYPE_CHECKING:
+    from langchain_rabbitmq.config import RabbitMQSettings
 
 # ---------------------------------------------------------------------------
 # Mock factories
@@ -88,9 +87,7 @@ class TestListQueuesTool:
             ]
         )
         tool = ListQueuesTool(settings=settings)
-        with patch(
-            "langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt
-        ):
+        with patch("langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt):
             result = tool.invoke({"vhost": "/"})
         assert "orders" in result
         assert "2" in result  # found count or consumer count
@@ -98,9 +95,7 @@ class TestListQueuesTool:
     def test_empty_returns_no_queues_message(self, settings: RabbitMQSettings) -> None:
         mgmt = _mock_mgmt_client(queues=[])
         tool = ListQueuesTool(settings=settings)
-        with patch(
-            "langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt
-        ):
+        with patch("langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt):
             result = tool.invoke({})
         assert "No queues" in result
 
@@ -124,9 +119,7 @@ class TestListExchangesTool:
             ]
         )
         tool = ListExchangesTool(settings=settings)
-        with patch(
-            "langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt
-        ):
+        with patch("langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt):
             result = tool.invoke({"include_defaults": True})
         assert "events" in result
         assert "topic" in result
@@ -140,9 +133,7 @@ class TestListExchangesTool:
             ]
         )
         tool = ListExchangesTool(settings=settings)
-        with patch(
-            "langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt
-        ):
+        with patch("langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt):
             result = tool.invoke({"include_defaults": False})
         # Only user-ex should remain
         assert "user-ex" in result
@@ -151,9 +142,7 @@ class TestListExchangesTool:
     def test_empty_no_user_exchanges_message(self, settings: RabbitMQSettings) -> None:
         mgmt = _mock_mgmt_client(exchanges=[])
         tool = ListExchangesTool(settings=settings)
-        with patch(
-            "langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt
-        ):
+        with patch("langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt):
             result = tool.invoke({})
         assert "No user-defined exchanges" in result
 
@@ -176,9 +165,7 @@ class TestListBindingsTool:
             ]
         )
         tool = ListBindingsTool(settings=settings)
-        with patch(
-            "langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt
-        ):
+        with patch("langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt):
             result = tool.invoke({})
         assert "events" in result
         assert "orders" in result
@@ -186,9 +173,7 @@ class TestListBindingsTool:
     def test_empty_returns_no_bindings(self, settings: RabbitMQSettings) -> None:
         mgmt = _mock_mgmt_client(bindings=[])
         tool = ListBindingsTool(settings=settings)
-        with patch(
-            "langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt
-        ):
+        with patch("langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt):
             result = tool.invoke({})
         assert "No bindings" in result
 
@@ -215,18 +200,14 @@ class TestGetNodeStatsTool:
             ]
         )
         tool = GetNodeStatsTool(settings=settings)
-        with patch(
-            "langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt
-        ):
+        with patch("langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt):
             result = tool.invoke({})
         assert "rabbit@hostname" in result
 
     def test_empty_returns_no_stats_message(self, settings: RabbitMQSettings) -> None:
         mgmt = _mock_mgmt_client(nodes=[])
         tool = GetNodeStatsTool(settings=settings)
-        with patch(
-            "langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt
-        ):
+        with patch("langchain_rabbitmq.tools.admin.ManagementAPIClient", return_value=mgmt):
             result = tool.invoke({})
         assert "No node statistics" in result
 
@@ -320,9 +301,7 @@ class TestCloseConnectionTool:
         amqp.connect.assert_called_once()
         amqp.close.assert_called_once()
 
-    def test_connection_error_returned_as_string(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    def test_connection_error_returned_as_string(self, settings: RabbitMQSettings) -> None:
         amqp = _mock_amqp_client()
         amqp.connect.side_effect = RabbitMQConnectionError("refused")
         tool = CloseConnectionTool(settings=settings)

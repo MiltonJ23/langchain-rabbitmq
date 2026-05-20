@@ -7,7 +7,7 @@ tool tests (which patch the factories).
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -87,16 +87,12 @@ def _make_async_mgmt_mock() -> AsyncMock:
 
 
 class TestBaseToolFactories:
-    def test_make_client_returns_rabbitmq_client(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    def test_make_client_returns_rabbitmq_client(self, settings: RabbitMQSettings) -> None:
         tool = DeclareQueueTool(settings=settings)
         client = tool._make_client()
         assert isinstance(client, RabbitMQClient)
 
-    def test_make_async_client_returns_async_client(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    def test_make_async_client_returns_async_client(self, settings: RabbitMQSettings) -> None:
         tool = DeclareQueueTool(settings=settings)
         client = tool._make_async_client()
         assert isinstance(client, AsyncRabbitMQClient)
@@ -109,9 +105,7 @@ class TestBaseToolFactories:
 
 class TestBaseToolArunErrorHandling:
     @pytest.mark.asyncio
-    async def test_arun_converts_tool_exception_to_string(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_arun_converts_tool_exception_to_string(self, settings: RabbitMQSettings) -> None:
         tool = DeclareQueueTool(settings=settings)
         mock_client = _make_async_ctx_mock()
         mock_client.declare_queue = AsyncMock(
@@ -127,19 +121,15 @@ class TestBaseToolArunErrorHandling:
     ) -> None:
         tool = DeclareQueueTool(settings=settings)
         mock_client = _make_async_ctx_mock()
-        mock_client.declare_queue = AsyncMock(
-            side_effect=RuntimeError("totally unexpected")
-        )
+        mock_client.declare_queue = AsyncMock(side_effect=RuntimeError("totally unexpected"))
         with patch.object(tool, "_make_async_client", return_value=mock_client):
             result = await tool._arun(name="some_queue")
         assert "[INTERNAL_ERROR]" in result
 
     @pytest.mark.asyncio
-    async def test_default_aexecute_delegates_to_execute(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_default_aexecute_delegates_to_execute(self, settings: RabbitMQSettings) -> None:
         """The base _aexecute default (line 123) calls _execute synchronously."""
-        from typing import Type
+
         from pydantic import BaseModel
 
         class _EmptySchema(BaseModel):
@@ -148,7 +138,7 @@ class TestBaseToolArunErrorHandling:
         class _NaiveTool(_RabbitMQBaseTool):
             name: str = "test_naive"
             description: str = "test"
-            args_schema: Type[BaseModel] = _EmptySchema  # type: ignore[assignment]
+            args_schema: type[BaseModel] = _EmptySchema  # type: ignore[assignment]
 
             def _execute(self, **kwargs: object) -> str:  # type: ignore[override]
                 return "sync_result"
@@ -289,9 +279,7 @@ class TestExchangeToolsAsync:
             )
         )
         with patch.object(tool, "_make_async_client", return_value=mock_client):
-            result = await tool._arun(
-                destination="dst", source="src", routing_key="rk"
-            )
+            result = await tool._arun(destination="dst", source="src", routing_key="rk")
         assert "dst" in result
 
 
@@ -315,9 +303,7 @@ class TestMessageToolsAsync:
         assert "published" in result.lower()
 
     @pytest.mark.asyncio
-    async def test_consume_message_async_with_result(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_consume_message_async_with_result(self, settings: RabbitMQSettings) -> None:
         tool = ConsumeMessageTool(settings=settings)
         mock_client = _make_async_ctx_mock()
         mock_client.consume_message = AsyncMock(
@@ -337,9 +323,7 @@ class TestMessageToolsAsync:
         assert "orders" in result
 
     @pytest.mark.asyncio
-    async def test_consume_message_async_empty_queue(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_consume_message_async_empty_queue(self, settings: RabbitMQSettings) -> None:
         tool = ConsumeMessageTool(settings=settings)
         mock_client = _make_async_ctx_mock()
         mock_client.consume_message = AsyncMock(return_value=None)
@@ -485,9 +469,7 @@ class TestAdminToolsAsync:
         assert "OK" in result
 
     @pytest.mark.asyncio
-    async def test_get_connection_info_async_connected(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_get_connection_info_async_connected(self, settings: RabbitMQSettings) -> None:
         tool = GetConnectionInfoTool(settings=settings)
         mock_client = _make_async_ctx_mock()
         mock_client.get_connection_info = AsyncMock(
@@ -541,9 +523,7 @@ class TestAdminToolsAsync:
     ) -> None:
         tool = CloseConnectionTool(settings=settings)
         mock_client = AsyncMock()
-        mock_client.connect = AsyncMock(
-            side_effect=RabbitMQConnectionError("refused", cause=None)
-        )
+        mock_client.connect = AsyncMock(side_effect=RabbitMQConnectionError("refused", cause=None))
         mock_client.close = AsyncMock()
         with patch.object(tool, "_make_async_client", return_value=mock_client):
             result = await tool._arun()

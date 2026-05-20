@@ -71,9 +71,7 @@ class TestTransientExceptionHelpers:
             assert isinstance(result, tuple)
 
     def test_aio_pika_import_error_returns_empty_tuple(self) -> None:
-        with patch.dict(
-            "sys.modules", {"aio_pika": None, "aio_pika.exceptions": None}
-        ):
+        with patch.dict("sys.modules", {"aio_pika": None, "aio_pika.exceptions": None}):
             import importlib
 
             import langchain_rabbitmq.utilities._retry as retry_mod
@@ -103,9 +101,7 @@ class TestMakeSyncRetry:
     def test_reraises_after_max_attempts(self, settings: RabbitMQSettings) -> None:
         import pika.exceptions  # type: ignore[import-untyped]
 
-        settings_1 = RabbitMQSettings(
-            host="localhost", max_retries=2, retry_delay=0.001
-        )
+        settings_1 = RabbitMQSettings(host="localhost", max_retries=2, retry_delay=0.001)
         call_count = 0
         with pytest.raises(pika.exceptions.AMQPConnectionError):
             for attempt in make_sync_retry(settings_1):
@@ -115,9 +111,7 @@ class TestMakeSyncRetry:
         # Should have tried exactly max_retries times
         assert call_count == 2
 
-    def test_non_transient_error_not_retried(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    def test_non_transient_error_not_retried(self, settings: RabbitMQSettings) -> None:
         call_count = 0
         with pytest.raises(ValueError):
             for attempt in make_sync_retry(settings):
@@ -139,9 +133,7 @@ class TestMakeAsyncRetry:
         assert isinstance(policy, AsyncRetrying)
 
     @pytest.mark.asyncio
-    async def test_success_on_first_attempt_async(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_success_on_first_attempt_async(self, settings: RabbitMQSettings) -> None:
         call_count = 0
         async for attempt in make_async_retry(settings):
             with attempt:
@@ -149,14 +141,10 @@ class TestMakeAsyncRetry:
         assert call_count == 1
 
     @pytest.mark.asyncio
-    async def test_reraises_after_max_attempts_async(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_reraises_after_max_attempts_async(self, settings: RabbitMQSettings) -> None:
         import aio_pika.exceptions as aio_exc  # type: ignore[import-untyped]
 
-        settings_1 = RabbitMQSettings(
-            host="localhost", max_retries=2, retry_delay=0.001
-        )
+        settings_1 = RabbitMQSettings(host="localhost", max_retries=2, retry_delay=0.001)
         call_count = 0
         with pytest.raises(aio_exc.AMQPConnectionError):
             async for attempt in make_async_retry(settings_1):
@@ -166,9 +154,7 @@ class TestMakeAsyncRetry:
         assert call_count == 2
 
     @pytest.mark.asyncio
-    async def test_non_transient_error_not_retried_async(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    async def test_non_transient_error_not_retried_async(self, settings: RabbitMQSettings) -> None:
         call_count = 0
         with pytest.raises(ValueError):
             async for attempt in make_async_retry(settings):
@@ -184,9 +170,7 @@ class TestMakeAsyncRetry:
 
 
 class TestLogRetryAttempt:
-    def test_logs_warning_with_attempt_number(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_logs_warning_with_attempt_number(self, caplog: pytest.LogCaptureFixture) -> None:
         mock_state = MagicMock()
         mock_state.attempt_number = 2
         mock_state.outcome.exception.return_value = RuntimeError("test error")
@@ -200,9 +184,7 @@ class TestLogRetryAttempt:
         assert record.levelno == logging.WARNING
         assert "2" in record.message
 
-    def test_logs_none_when_no_outcome(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_logs_none_when_no_outcome(self, caplog: pytest.LogCaptureFixture) -> None:
         mock_state = MagicMock()
         mock_state.attempt_number = 1
         mock_state.outcome = None

@@ -2,24 +2,25 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-from langchain_rabbitmq.config import RabbitMQSettings
 from langchain_rabbitmq.exceptions import (
     RabbitMQMessageError,
     RabbitMQValidationError,
 )
 from langchain_rabbitmq.tools.message import (
+    MESSAGE_TOOLS,
     AckMessageTool,
     ConsumeMessageTool,
-    MESSAGE_TOOLS,
     NackMessageTool,
     PublishMessageTool,
     RejectMessageTool,
 )
 from langchain_rabbitmq.utilities._models import MessageResult
+
+if TYPE_CHECKING:
+    from langchain_rabbitmq.config import RabbitMQSettings
 
 
 def _mock_client(
@@ -52,15 +53,11 @@ def _mock_client(
 
 
 class TestPublishMessageTool:
-    def test_success_message_contains_exchange_and_key(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    def test_success_message_contains_exchange_and_key(self, settings: RabbitMQSettings) -> None:
         mock = _mock_client()
         tool = PublishMessageTool(settings=settings)
         with patch.object(tool, "_make_client", return_value=mock):
-            result = tool.invoke(
-                {"exchange": "", "routing_key": "orders", "body": '{"id": 1}'}
-            )
+            result = tool.invoke({"exchange": "", "routing_key": "orders", "body": '{"id": 1}'})
         assert "orders" in result
         assert "published" in result.lower() or "sent" in result.lower()
 
@@ -134,9 +131,7 @@ class TestConsumeMessageTool:
 
 
 class TestAckMessageTool:
-    def test_success_string_contains_delivery_tag(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    def test_success_string_contains_delivery_tag(self, settings: RabbitMQSettings) -> None:
         mock = _mock_client()
         tool = AckMessageTool(settings=settings)
         with patch.object(tool, "_make_client", return_value=mock):
@@ -153,9 +148,7 @@ class TestAckMessageTool:
 
 
 class TestNackMessageTool:
-    def test_success_string_contains_delivery_tag(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    def test_success_string_contains_delivery_tag(self, settings: RabbitMQSettings) -> None:
         mock = _mock_client()
         tool = NackMessageTool(settings=settings)
         with patch.object(tool, "_make_client", return_value=mock):
@@ -172,9 +165,7 @@ class TestNackMessageTool:
 
 
 class TestRejectMessageTool:
-    def test_success_string_contains_delivery_tag(
-        self, settings: RabbitMQSettings
-    ) -> None:
+    def test_success_string_contains_delivery_tag(self, settings: RabbitMQSettings) -> None:
         mock = _mock_client()
         tool = RejectMessageTool(settings=settings)
         with patch.object(tool, "_make_client", return_value=mock):

@@ -7,7 +7,7 @@ settings, and an LLM factory.
 
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Optional
 from unittest.mock import MagicMock
 
 import pytest
@@ -23,6 +23,9 @@ from langchain_rabbitmq.utilities._models import (
     HealthStatus,
     QueueInfo,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class SequenceChatModel(BaseChatModel):
@@ -87,7 +90,7 @@ class SequenceChatModel(BaseChatModel):
         self,
         tools: Sequence[Any],
         **kwargs: Any,
-    ) -> "SequenceChatModel":
+    ) -> SequenceChatModel:
         """No-op — preset responses encode tool decisions directly.
 
         Args:
