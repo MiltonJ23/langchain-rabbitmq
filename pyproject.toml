@@ -49,6 +49,7 @@ dev = [
     "mypy>=1.8",
     "httpx>=0.27",       # used by admin HTTP client in tests
     "respx>=0.20",       # HTTP mock for httpx in unit tests
+    "langchain>=1.3",    # AgentExecutor / create_agent for e2e agent tests
 ]
 docs = [
     "mkdocs>=1.5",
