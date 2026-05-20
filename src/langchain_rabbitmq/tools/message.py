@@ -31,7 +31,7 @@ Example:
 from __future__ import annotations
 
 import json
-from typing import Any, Optional, Type
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -68,8 +68,7 @@ class _PublishMessageInput(BaseModel):
     )
     routing_key: str = Field(
         description=(
-            "Routing key for the message. "
-            "When exchange is '' this is the destination queue name."
+            "Routing key for the message. When exchange is '' this is the destination queue name."
         )
     )
     body: str = Field(
@@ -228,7 +227,7 @@ class PublishMessageTool(_RabbitMQBaseTool):
         "Set expiration_ms to limit message lifetime (0 = no limit). "
         "Returns a confirmation string when the broker acknowledges receipt."
     )
-    args_schema: Type[BaseModel] = _PublishMessageInput
+    args_schema: type[BaseModel] = _PublishMessageInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -320,7 +319,7 @@ class ConsumeMessageTool(_RabbitMQBaseTool):
         "retry later or stop polling. "
         "auto_ack=True (default) is recommended for standard agent use."
     )
-    args_schema: Type[BaseModel] = _ConsumeMessageInput
+    args_schema: type[BaseModel] = _ConsumeMessageInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -430,7 +429,7 @@ class AckMessageTool(_RabbitMQBaseTool):
         "IMPORTANT: This must be called on the same AMQP connection that consumed "
         "the message. For standard agent use, prefer auto_ack=True on consume."
     )
-    args_schema: Type[BaseModel] = _AckMessageInput
+    args_schema: type[BaseModel] = _AckMessageInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -476,7 +475,7 @@ class NackMessageTool(_RabbitMQBaseTool):
         "Use requeue=False to discard the message or route it to a dead-letter exchange. "
         "Requires delivery_tag from a prior rabbitmq_consume_message call on the same connection."
     )
-    args_schema: Type[BaseModel] = _NackMessageInput
+    args_schema: type[BaseModel] = _NackMessageInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -521,7 +520,7 @@ class RejectMessageTool(_RabbitMQBaseTool):
         "Use requeue=False to discard it or route to a dead-letter exchange. "
         "Requires delivery_tag from a prior rabbitmq_consume_message call on the same connection."
     )
-    args_schema: Type[BaseModel] = _RejectMessageInput
+    args_schema: type[BaseModel] = _RejectMessageInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -556,10 +555,10 @@ MESSAGE_TOOLS: list[type[_RabbitMQBaseTool]] = [
 ]
 
 __all__: list[str] = [
-    "PublishMessageTool",
-    "ConsumeMessageTool",
-    "AckMessageTool",
-    "NackMessageTool",
-    "RejectMessageTool",
     "MESSAGE_TOOLS",
+    "AckMessageTool",
+    "ConsumeMessageTool",
+    "NackMessageTool",
+    "PublishMessageTool",
+    "RejectMessageTool",
 ]

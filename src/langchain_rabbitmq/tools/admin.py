@@ -23,8 +23,7 @@ Example:
 
 from __future__ import annotations
 
-import json
-from typing import Any, Optional, Type
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -111,8 +110,7 @@ class _GetNodeStatsInput(BaseModel):
             "rates_mode",
         ],
         description=(
-            "List of node stat field names to include. "
-            "Pass [] to return all available fields."
+            "List of node stat field names to include. Pass [] to return all available fields."
         ),
     )
 
@@ -165,7 +163,7 @@ class ListQueuesTool(_RabbitMQBaseTool):
         "Optionally filter by virtual host. "
         "Requires RABBITMQ_MANAGEMENT_API_URL to be set."
     )
-    args_schema: Type[BaseModel] = _ListQueuesInput
+    args_schema: type[BaseModel] = _ListQueuesInput
 
     def _execute(self, vhost: str = "", **_: Any) -> str:  # type: ignore[override]
         vhost_filter: Optional[str] = vhost or None
@@ -217,7 +215,7 @@ class ListExchangesTool(_RabbitMQBaseTool):
         "Set include_defaults=false (default) to hide built-in broker exchanges. "
         "Requires RABBITMQ_MANAGEMENT_API_URL to be set."
     )
-    args_schema: Type[BaseModel] = _ListExchangesInput
+    args_schema: type[BaseModel] = _ListExchangesInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -230,7 +228,8 @@ class ListExchangesTool(_RabbitMQBaseTool):
             exchanges = mgmt.list_exchanges(vhost=vhost_filter)
         if not include_defaults:
             exchanges = [
-                e for e in exchanges
+                e
+                for e in exchanges
                 if e.get("name", "") and not e.get("name", "").startswith("amq.")
             ]
         if not exchanges:
@@ -255,7 +254,8 @@ class ListExchangesTool(_RabbitMQBaseTool):
             exchanges = await mgmt.list_exchanges(vhost=vhost_filter)
         if not include_defaults:
             exchanges = [
-                e for e in exchanges
+                e
+                for e in exchanges
                 if e.get("name", "") and not e.get("name", "").startswith("amq.")
             ]
         if not exchanges:
@@ -285,7 +285,7 @@ class ListBindingsTool(_RabbitMQBaseTool):
         "Returns source exchange, destination, and routing key for each binding. "
         "Requires RABBITMQ_MANAGEMENT_API_URL to be set."
     )
-    args_schema: Type[BaseModel] = _ListBindingsInput
+    args_schema: type[BaseModel] = _ListBindingsInput
 
     def _execute(self, vhost: str = "", **_: Any) -> str:  # type: ignore[override]
         vhost_filter: Optional[str] = vhost or None
@@ -299,10 +299,7 @@ class ListBindingsTool(_RabbitMQBaseTool):
             dst = b.get("destination", "?")
             dst_type = b.get("destination_type", "?")
             key = b.get("routing_key", "")
-            lines.append(
-                f"  {src!r} → {dst!r} ({dst_type})"
-                + (f" key={key!r}" if key else "")
-            )
+            lines.append(f"  {src!r} → {dst!r} ({dst_type})" + (f" key={key!r}" if key else ""))
         return "\n".join(lines)
 
     async def _aexecute(self, vhost: str = "", **_: Any) -> str:  # type: ignore[override]
@@ -317,10 +314,7 @@ class ListBindingsTool(_RabbitMQBaseTool):
             dst = b.get("destination", "?")
             dst_type = b.get("destination_type", "?")
             key = b.get("routing_key", "")
-            lines.append(
-                f"  {src!r} → {dst!r} ({dst_type})"
-                + (f" key={key!r}" if key else "")
-            )
+            lines.append(f"  {src!r} → {dst!r} ({dst_type})" + (f" key={key!r}" if key else ""))
         return "\n".join(lines)
 
 
@@ -343,7 +337,7 @@ class GetNodeStatsTool(_RabbitMQBaseTool):
         "Useful for diagnosing broker performance issues. "
         "Requires RABBITMQ_MANAGEMENT_API_URL to be set."
     )
-    args_schema: Type[BaseModel] = _GetNodeStatsInput
+    args_schema: type[BaseModel] = _GetNodeStatsInput
 
     def _execute(self, fields: Optional[list[str]] = None, **_: Any) -> str:  # type: ignore[override]
         selected = set(fields) if fields else set()
@@ -354,9 +348,7 @@ class GetNodeStatsTool(_RabbitMQBaseTool):
         lines = [f"Cluster has {len(nodes)} node(s):"]
         for node in nodes:
             filtered: dict[str, Any] = (
-                {k: v for k, v in node.items() if k in selected}
-                if selected
-                else node
+                {k: v for k, v in node.items() if k in selected} if selected else node
             )
             lines.append(f"\nNode: {node.get('name', '?')}")
             for k, v in filtered.items():
@@ -373,11 +365,7 @@ class GetNodeStatsTool(_RabbitMQBaseTool):
             return "No node statistics available."
         lines = [f"Cluster has {len(nodes)} node(s):"]
         for node in nodes:
-            filtered = (
-                {k: v for k, v in node.items() if k in selected}
-                if selected
-                else node
-            )
+            filtered = {k: v for k, v in node.items() if k in selected} if selected else node
             lines.append(f"\nNode: {node.get('name', '?')}")
             for k, v in filtered.items():
                 if k == "name":
@@ -405,7 +393,7 @@ class CheckHealthTool(_RabbitMQBaseTool):
         "Returns OK, DEGRADED, or DOWN with a human-readable explanation. "
         "Use this to verify the broker is reachable before other operations."
     )
-    args_schema: Type[BaseModel] = _CheckHealthInput
+    args_schema: type[BaseModel] = _CheckHealthInput
 
     def _execute(self, **_: Any) -> str:  # type: ignore[override]
         with self._make_client() as client:
@@ -441,7 +429,7 @@ class GetConnectionInfoTool(_RabbitMQBaseTool):
         "host, port, virtual host, broker version, and platform. "
         "Use this to confirm which broker the agent is connected to."
     )
-    args_schema: Type[BaseModel] = _GetConnectionInfoInput
+    args_schema: type[BaseModel] = _GetConnectionInfoInput
 
     def _execute(self, **_: Any) -> str:  # type: ignore[override]
         with self._make_client() as client:
@@ -489,7 +477,7 @@ class CloseConnectionTool(_RabbitMQBaseTool):
         "Useful to verify connection teardown or to reset connection state "
         "in a long-running agent session."
     )
-    args_schema: Type[BaseModel] = _CloseConnectionInput
+    args_schema: type[BaseModel] = _CloseConnectionInput
 
     def _execute(self, **_: Any) -> str:  # type: ignore[override]
         client = self._make_client()
@@ -497,10 +485,7 @@ class CloseConnectionTool(_RabbitMQBaseTool):
             client.connect()
         finally:
             client.close()
-        return (
-            f"AMQP connection to {self.settings.host}:{self.settings.port} "
-            f"closed gracefully."
-        )
+        return f"AMQP connection to {self.settings.host}:{self.settings.port} closed gracefully."
 
     async def _aexecute(self, **_: Any) -> str:  # type: ignore[override]
         client = self._make_async_client()
@@ -508,10 +493,7 @@ class CloseConnectionTool(_RabbitMQBaseTool):
             await client.connect()
         finally:
             await client.close()
-        return (
-            f"AMQP connection to {self.settings.host}:{self.settings.port} "
-            f"closed gracefully."
-        )
+        return f"AMQP connection to {self.settings.host}:{self.settings.port} closed gracefully."
 
 
 # Ordered list used by RabbitMQToolkit / test factories
@@ -526,12 +508,12 @@ ADMIN_TOOLS: list[type[_RabbitMQBaseTool]] = [
 ]
 
 __all__: list[str] = [
-    "ListQueuesTool",
-    "ListExchangesTool",
-    "ListBindingsTool",
-    "GetNodeStatsTool",
-    "CheckHealthTool",
-    "GetConnectionInfoTool",
-    "CloseConnectionTool",
     "ADMIN_TOOLS",
+    "CheckHealthTool",
+    "CloseConnectionTool",
+    "GetConnectionInfoTool",
+    "GetNodeStatsTool",
+    "ListBindingsTool",
+    "ListExchangesTool",
+    "ListQueuesTool",
 ]

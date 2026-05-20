@@ -23,7 +23,7 @@ Example:
 
 from __future__ import annotations
 
-from typing import Any, Optional, Type
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -105,9 +105,7 @@ class _BindExchangeInput(BaseModel):
     destination: str = Field(
         description="Destination exchange name (receives messages routed from source)."
     )
-    source: str = Field(
-        description="Source exchange name (publishes messages into this binding)."
-    )
+    source: str = Field(description="Source exchange name (publishes messages into this binding).")
     routing_key: str = Field(
         default="",
         description=(
@@ -159,7 +157,7 @@ class DeclareExchangeTool(_RabbitMQBaseTool):
         "Set durable=true for exchanges that must survive a broker restart. "
         "Returns a confirmation with the exchange configuration."
     )
-    args_schema: Type[BaseModel] = _DeclareExchangeInput
+    args_schema: type[BaseModel] = _DeclareExchangeInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -240,7 +238,7 @@ class DeleteExchangeTool(_RabbitMQBaseTool):
         "Use if_unused=true to prevent deletion while queues are still bound. "
         "Returns a confirmation string on success."
     )
-    args_schema: Type[BaseModel] = _DeleteExchangeInput
+    args_schema: type[BaseModel] = _DeleteExchangeInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -291,7 +289,7 @@ class BindExchangeTool(_RabbitMQBaseTool):
         "Useful for routing trees, dead-letter chains, and fan-out pipelines. "
         "Returns a confirmation with binding details."
     )
-    args_schema: Type[BaseModel] = _BindExchangeInput
+    args_schema: type[BaseModel] = _BindExchangeInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -344,8 +342,8 @@ EXCHANGE_TOOLS: list[type[_RabbitMQBaseTool]] = [
 ]
 
 __all__: list[str] = [
+    "EXCHANGE_TOOLS",
+    "BindExchangeTool",
     "DeclareExchangeTool",
     "DeleteExchangeTool",
-    "BindExchangeTool",
-    "EXCHANGE_TOOLS",
 ]

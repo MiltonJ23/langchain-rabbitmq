@@ -37,7 +37,6 @@ from langchain_rabbitmq.exceptions import (
     RabbitMQChannelError,
     RabbitMQConnectionError,
     RabbitMQMessageError,
-    RabbitMQValidationError,
 )
 from langchain_rabbitmq.utilities._models import (
     BindingInfo,
@@ -186,7 +185,7 @@ class AsyncRabbitMQClient:
         try:
             if self._channel is not None and not self._channel.is_closed:  # type: ignore[attr-defined]
                 await self._channel.close()  # type: ignore[attr-defined]
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         finally:
             self._channel = None
@@ -194,12 +193,12 @@ class AsyncRabbitMQClient:
         try:
             if self._connection is not None and not self._connection.is_closed:  # type: ignore[attr-defined]
                 await self._connection.close()  # type: ignore[attr-defined]
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         finally:
             self._connection = None
 
-    async def __aenter__(self) -> "AsyncRabbitMQClient":
+    async def __aenter__(self) -> AsyncRabbitMQClient:
         await self.connect()
         return self
 
@@ -259,10 +258,16 @@ class AsyncRabbitMQClient:
                 durable=durable,
                 exclusive=exclusive,
                 auto_delete=auto_delete,
-                message_count=getattr(queue, "declaration_result", None)  # type: ignore[attr-defined]
-                and queue.declaration_result.message_count or 0,  # type: ignore[attr-defined]
-                consumer_count=getattr(queue, "declaration_result", None)  # type: ignore[attr-defined]
-                and queue.declaration_result.consumer_count or 0,  # type: ignore[attr-defined]
+                message_count=(
+                    getattr(queue, "declaration_result", None)  # type: ignore[attr-defined]
+                    and queue.declaration_result.message_count
+                )
+                or 0,  # type: ignore[attr-defined]
+                consumer_count=(
+                    getattr(queue, "declaration_result", None)  # type: ignore[attr-defined]
+                    and queue.declaration_result.consumer_count
+                )
+                or 0,  # type: ignore[attr-defined]
                 arguments=arguments or {},
             )
         except aio_pika.exceptions.ChannelNotFoundEntity as exc:  # type: ignore[attr-defined]
@@ -331,9 +336,7 @@ class AsyncRabbitMQClient:
             result = await q.purge()  # type: ignore[attr-defined]
             return int(result.message_count)  # type: ignore[attr-defined]
         except Exception as exc:
-            raise RabbitMQChannelError(
-                f"Failed to purge queue {name!r}: {exc}", cause=exc
-            ) from exc
+            raise RabbitMQChannelError(f"Failed to purge queue {name!r}: {exc}", cause=exc) from exc
 
     async def bind_queue(
         self,
@@ -582,7 +585,9 @@ class AsyncRabbitMQClient:
         try:
             message = aio_pika.Message(  # type: ignore[attr-defined]
                 body=body,
-                delivery_mode=aio_pika.DeliveryMode.PERSISTENT if persistent else aio_pika.DeliveryMode.NOT_PERSISTENT,  # type: ignore[attr-defined]
+                delivery_mode=aio_pika.DeliveryMode.PERSISTENT
+                if persistent
+                else aio_pika.DeliveryMode.NOT_PERSISTENT,  # type: ignore[attr-defined]
                 content_type=content_type,
                 content_encoding=content_encoding,
                 headers=headers,
@@ -768,7 +773,7 @@ class AsyncRabbitMQClient:
                 port=self._settings.port,
                 message=exc.message,
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return HealthInfo(
                 status=HealthStatus.DEGRADED,
                 host=self._settings.host,

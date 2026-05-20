@@ -174,12 +174,12 @@ class HealthInfo(_ImmutableModel):
 
 
 __all__: list[str] = [
-    "ExchangeType",
-    "QueueInfo",
-    "ExchangeInfo",
-    "MessageResult",
     "BindingInfo",
     "ConnectionInfo",
-    "HealthStatus",
+    "ExchangeInfo",
+    "ExchangeType",
     "HealthInfo",
+    "HealthStatus",
+    "MessageResult",
+    "QueueInfo",
 ]

@@ -155,10 +155,7 @@ class RabbitMQSettings(BaseSettings):
     # ------------------------------------------------------------------
     management_api_url: Optional[str] = Field(
         default=None,
-        description=(
-            "Base URL of the RabbitMQ Management HTTP API "
-            "(e.g. http://localhost:15672)"
-        ),
+        description=("Base URL of the RabbitMQ Management HTTP API (e.g. http://localhost:15672)"),
     )
     management_username: Optional[str] = Field(
         default=None,
@@ -166,10 +163,7 @@ class RabbitMQSettings(BaseSettings):
     )
     management_password: Optional[SecretStr] = Field(
         default=None,
-        description=(
-            "Management API password stored as SecretStr "
-            "(falls back to ``password``)"
-        ),
+        description=("Management API password stored as SecretStr (falls back to ``password``)"),
     )
 
     # ------------------------------------------------------------------
@@ -237,13 +231,8 @@ class RabbitMQSettings(BaseSettings):
             ValueError: When any of ``ssl_ca_certs``, ``ssl_certfile``, or
                 ``ssl_keyfile`` is set while ``ssl_enabled`` is ``False``.
         """
-        if not self.ssl_enabled and any(
-            [self.ssl_ca_certs, self.ssl_certfile, self.ssl_keyfile]
-        ):
-            raise ValueError(
-                "ssl_ca_certs, ssl_certfile, and ssl_keyfile "
-                "require ssl_enabled=True"
-            )
+        if not self.ssl_enabled and any([self.ssl_ca_certs, self.ssl_certfile, self.ssl_keyfile]):
+            raise ValueError("ssl_ca_certs, ssl_certfile, and ssl_keyfile require ssl_enabled=True")
         return self
 
     # ------------------------------------------------------------------
