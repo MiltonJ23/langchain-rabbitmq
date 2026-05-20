@@ -34,15 +34,15 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 __all__: list[str] = [
-    "__version__",
-    "RabbitMQSettings",
-    "RabbitMQClient",
     "AsyncRabbitMQClient",
     "ErrorCategory",
-    "RabbitMQToolException",
-    "RabbitMQConnectionError",
-    "RabbitMQChannelError",
-    "RabbitMQMessageError",
     "RabbitMQAdminError",
+    "RabbitMQChannelError",
+    "RabbitMQClient",
+    "RabbitMQConnectionError",
+    "RabbitMQMessageError",
+    "RabbitMQSettings",
+    "RabbitMQToolException",
     "RabbitMQValidationError",
+    "__version__",
 ]

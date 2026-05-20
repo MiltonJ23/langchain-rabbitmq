@@ -29,12 +29,8 @@ Example:
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
-from langchain_core.callbacks import (
-    AsyncCallbackManagerForToolRun,
-    CallbackManagerForToolRun,
-)
 from langchain_core.tools import BaseTool
 from pydantic import Field
 
@@ -42,6 +38,12 @@ from langchain_rabbitmq.config import RabbitMQSettings
 from langchain_rabbitmq.exceptions import RabbitMQToolException
 from langchain_rabbitmq.utilities.async_rabbitmq import AsyncRabbitMQClient
 from langchain_rabbitmq.utilities.rabbitmq import RabbitMQClient
+
+if TYPE_CHECKING:
+    from langchain_core.callbacks import (
+        AsyncCallbackManagerForToolRun,
+        CallbackManagerForToolRun,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -147,7 +149,7 @@ class _RabbitMQBaseTool(BaseTool):
         except RabbitMQToolException as exc:
             logger.warning("Tool %s failed: %s", self.name, exc.to_agent_message())
             return exc.to_agent_message()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             msg = f"[INTERNAL_ERROR] Unexpected error in {self.name}: {exc}"
             logger.exception("Unexpected error in tool %s", self.name)
             return msg
@@ -173,7 +175,7 @@ class _RabbitMQBaseTool(BaseTool):
         except RabbitMQToolException as exc:
             logger.warning("Tool %s failed (async): %s", self.name, exc.to_agent_message())
             return exc.to_agent_message()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             msg = f"[INTERNAL_ERROR] Unexpected error in {self.name}: {exc}"
             logger.exception("Unexpected error in tool %s (async)", self.name)
             return msg

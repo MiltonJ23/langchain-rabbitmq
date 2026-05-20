@@ -27,12 +27,11 @@ Example:
 
 from __future__ import annotations
 
-from typing import Any, Optional, Type
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
 from langchain_rabbitmq.tools._base import _RabbitMQBaseTool
-from langchain_rabbitmq.utilities._models import ExchangeType
 
 # ---------------------------------------------------------------------------
 # Input schemas
@@ -126,9 +125,7 @@ class _UnbindQueueInput(BaseModel):
 
     queue: str = Field(description="Queue name to unbind.")
     exchange: str = Field(description="Exchange name to unbind from.")
-    routing_key: str = Field(
-        default="", description="Routing key that was used when binding."
-    )
+    routing_key: str = Field(default="", description="Routing key that was used when binding.")
     arguments: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -173,7 +170,7 @@ class DeclareQueueTool(_RabbitMQBaseTool):
         "Returns the resolved queue name and current message/consumer counts. "
         "Set durable=true for queues that must survive a broker restart."
     )
-    args_schema: Type[BaseModel] = _DeclareQueueInput
+    args_schema: type[BaseModel] = _DeclareQueueInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -258,7 +255,7 @@ class DeleteQueueTool(_RabbitMQBaseTool):
         "Use if_empty=true to prevent deletion when messages are still present. "
         "Returns the number of messages that were discarded."
     )
-    args_schema: Type[BaseModel] = _DeleteQueueInput
+    args_schema: type[BaseModel] = _DeleteQueueInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -279,9 +276,7 @@ class DeleteQueueTool(_RabbitMQBaseTool):
         **_: Any,
     ) -> str:
         async with self._make_async_client() as client:
-            discarded = await client.delete_queue(
-                name, if_unused=if_unused, if_empty=if_empty
-            )
+            discarded = await client.delete_queue(name, if_unused=if_unused, if_empty=if_empty)
         return f"Queue '{name}' deleted. Messages discarded: {discarded}."
 
 
@@ -304,7 +299,7 @@ class PurgeQueueTool(_RabbitMQBaseTool):
         "Bindings and the queue declaration are preserved. "
         "Returns the number of messages that were removed."
     )
-    args_schema: Type[BaseModel] = _PurgeQueueInput
+    args_schema: type[BaseModel] = _PurgeQueueInput
 
     def _execute(self, name: str, **_: Any) -> str:  # type: ignore[override]
         with self._make_client() as client:
@@ -340,7 +335,7 @@ class BindQueueTool(_RabbitMQBaseTool):
         "(use '#' to match all routing keys on a topic exchange). "
         "For fanout exchanges the routing_key is ignored."
     )
-    args_schema: Type[BaseModel] = _BindQueueInput
+    args_schema: type[BaseModel] = _BindQueueInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -390,7 +385,7 @@ class UnbindQueueTool(_RabbitMQBaseTool):
         "After this call, messages with the specified routing key will no longer "
         "be delivered to the queue from that exchange."
     )
-    args_schema: Type[BaseModel] = _UnbindQueueInput
+    args_schema: type[BaseModel] = _UnbindQueueInput
 
     def _execute(  # type: ignore[override]
         self,
@@ -437,7 +432,7 @@ class GetQueueInfoTool(_RabbitMQBaseTool):
         "number of ready messages, active consumers, durability, and configuration. "
         "Returns an error if the queue does not exist."
     )
-    args_schema: Type[BaseModel] = _GetQueueInfoInput
+    args_schema: type[BaseModel] = _GetQueueInfoInput
 
     def _execute(self, name: str, **_: Any) -> str:  # type: ignore[override]
         with self._make_client() as client:
@@ -475,11 +470,11 @@ QUEUE_TOOLS: list[type[_RabbitMQBaseTool]] = [
 ]
 
 __all__: list[str] = [
+    "QUEUE_TOOLS",
+    "BindQueueTool",
     "DeclareQueueTool",
     "DeleteQueueTool",
-    "PurgeQueueTool",
-    "BindQueueTool",
-    "UnbindQueueTool",
     "GetQueueInfoTool",
-    "QUEUE_TOOLS",
+    "PurgeQueueTool",
+    "UnbindQueueTool",
 ]

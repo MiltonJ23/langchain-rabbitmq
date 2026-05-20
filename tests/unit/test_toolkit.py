@@ -54,7 +54,7 @@ class TestAllToolsList:
     def test_covers_all_groups(self) -> None:
         names = {cls().name for cls in ALL_TOOLS}
         # Spot-check one from each group
-        assert "rabbitmq_declare_queue" in names       # queue
-        assert "rabbitmq_declare_exchange" in names    # exchange
-        assert "rabbitmq_publish_message" in names     # message
-        assert "rabbitmq_list_queues" in names         # admin
+        assert "rabbitmq_declare_queue" in names  # queue
+        assert "rabbitmq_declare_exchange" in names  # exchange
+        assert "rabbitmq_publish_message" in names  # message
+        assert "rabbitmq_list_queues" in names  # admin

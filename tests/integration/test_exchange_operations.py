@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from langchain_rabbitmq.utilities._models import ExchangeType
-from langchain_rabbitmq.utilities.async_rabbitmq import AsyncRabbitMQClient
-from langchain_rabbitmq.utilities.rabbitmq import RabbitMQClient
 
 from .conftest import _unique_name
+
+if TYPE_CHECKING:
+    from langchain_rabbitmq.utilities.async_rabbitmq import AsyncRabbitMQClient
+    from langchain_rabbitmq.utilities.rabbitmq import RabbitMQClient
 
 pytestmark = pytest.mark.integration
 
@@ -50,9 +54,7 @@ class TestSyncExchangeLifecycle:
         sync_client.declare_exchange(src, ExchangeType.TOPIC, durable=False)
         sync_client.declare_exchange(dst, ExchangeType.DIRECT, durable=False)
 
-        binding = sync_client.bind_exchange(
-            destination=dst, source=src, routing_key="test.*"
-        )
+        binding = sync_client.bind_exchange(destination=dst, source=src, routing_key="test.*")
         assert binding.source == src
         assert binding.destination == dst
 
@@ -73,28 +75,20 @@ class TestSyncExchangeLifecycle:
 
 class TestAsyncExchangeLifecycle:
     @pytest.mark.asyncio
-    async def test_declare_topic_and_delete_async(
-        self, async_client: AsyncRabbitMQClient
-    ) -> None:
+    async def test_declare_topic_and_delete_async(self, async_client: AsyncRabbitMQClient) -> None:
         name = _unique_name("test.atopic")
-        info = await async_client.declare_exchange(
-            name, ExchangeType.TOPIC, durable=False
-        )
+        info = await async_client.declare_exchange(name, ExchangeType.TOPIC, durable=False)
         assert info.name == name
         assert info.exchange_type == ExchangeType.TOPIC
         await async_client.delete_exchange(name)
 
     @pytest.mark.asyncio
-    async def test_bind_exchange_async(
-        self, async_client: AsyncRabbitMQClient
-    ) -> None:
+    async def test_bind_exchange_async(self, async_client: AsyncRabbitMQClient) -> None:
         src = _unique_name("test.asrc")
         dst = _unique_name("test.adst")
         await async_client.declare_exchange(src, ExchangeType.FANOUT, durable=False)
         await async_client.declare_exchange(dst, ExchangeType.DIRECT, durable=False)
-        binding = await async_client.bind_exchange(
-            destination=dst, source=src, routing_key=""
-        )
+        binding = await async_client.bind_exchange(destination=dst, source=src, routing_key="")
         assert binding.source == src
         await async_client.delete_exchange(src)
         await async_client.delete_exchange(dst)

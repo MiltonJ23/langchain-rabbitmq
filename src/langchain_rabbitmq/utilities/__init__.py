@@ -25,8 +25,8 @@ from langchain_rabbitmq.utilities.management import (
 from langchain_rabbitmq.utilities.rabbitmq import RabbitMQClient
 
 __all__: list[str] = [
-    "RabbitMQClient",
+    "AsyncManagementAPIClient",
     "AsyncRabbitMQClient",
     "ManagementAPIClient",
-    "AsyncManagementAPIClient",
+    "RabbitMQClient",
 ]

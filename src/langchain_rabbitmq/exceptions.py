@@ -179,10 +179,10 @@ class RabbitMQValidationError(RabbitMQToolException):
 
 __all__: list[str] = [
     "ErrorCategory",
-    "RabbitMQToolException",
-    "RabbitMQConnectionError",
-    "RabbitMQChannelError",
-    "RabbitMQMessageError",
     "RabbitMQAdminError",
+    "RabbitMQChannelError",
+    "RabbitMQConnectionError",
+    "RabbitMQMessageError",
+    "RabbitMQToolException",
     "RabbitMQValidationError",
 ]

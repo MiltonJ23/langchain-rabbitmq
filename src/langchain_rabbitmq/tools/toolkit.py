@@ -23,16 +23,18 @@ Example:
 
 from __future__ import annotations
 
-from typing import List
+from typing import TYPE_CHECKING, ClassVar
 
-from langchain_core.tools import BaseToolkit, BaseTool
+from langchain_core.tools import BaseTool, BaseToolkit
 
 from langchain_rabbitmq.config import RabbitMQSettings
-from langchain_rabbitmq.tools._base import _RabbitMQBaseTool
 from langchain_rabbitmq.tools.admin import ADMIN_TOOLS
 from langchain_rabbitmq.tools.exchange import EXCHANGE_TOOLS
 from langchain_rabbitmq.tools.message import MESSAGE_TOOLS
 from langchain_rabbitmq.tools.queue import QUEUE_TOOLS
+
+if TYPE_CHECKING:
+    from langchain_rabbitmq.tools._base import _RabbitMQBaseTool
 
 # Complete ordered list of every tool class
 ALL_TOOLS: list[type[_RabbitMQBaseTool]] = (
@@ -66,10 +68,10 @@ class RabbitMQToolkit(BaseToolkit):
 
     settings: RabbitMQSettings = RabbitMQSettings()  # type: ignore[call-arg]
 
-    model_config = {"arbitrary_types_allowed": True}
+    model_config: ClassVar[dict[str, bool]] = {"arbitrary_types_allowed": True}
 
     @classmethod
-    def from_settings(cls, settings: RabbitMQSettings | None = None) -> "RabbitMQToolkit":
+    def from_settings(cls, settings: RabbitMQSettings | None = None) -> RabbitMQToolkit:
         """Create a toolkit, optionally overriding the settings.
 
         Args:
@@ -89,7 +91,7 @@ class RabbitMQToolkit(BaseToolkit):
         """
         return cls(settings=settings or RabbitMQSettings())  # type: ignore[call-arg]
 
-    def get_tools(self) -> List[BaseTool]:
+    def get_tools(self) -> list[BaseTool]:
         """Return one instantiated instance of every RabbitMQ tool.
 
         All tools are configured with the shared :attr:`settings` instance so
@@ -105,10 +107,13 @@ class RabbitMQToolkit(BaseToolkit):
                 tools = RabbitMQToolkit().get_tools()
                 # 21 tools: queue (6) + exchange (3) + message (5) + admin (7)
         """
-        return [cls(settings=self.settings) for cls in ALL_TOOLS]
+        return [
+            cls(settings=self.settings)  # pyrefly: ignore[missing-argument]
+            for cls in ALL_TOOLS
+        ]
 
 
 __all__: list[str] = [
-    "RabbitMQToolkit",
     "ALL_TOOLS",
+    "RabbitMQToolkit",
 ]

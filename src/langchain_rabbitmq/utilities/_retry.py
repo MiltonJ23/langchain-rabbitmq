@@ -89,7 +89,7 @@ def _log_retry_attempt(retry_state: RetryCallState) -> None:
 # ---------------------------------------------------------------------------
 
 
-def make_sync_retry(settings: "RabbitMQSettings") -> Retrying:
+def make_sync_retry(settings: RabbitMQSettings) -> Retrying:
     """Build a :class:`tenacity.Retrying` policy tuned to pika transient errors.
 
     Args:
@@ -121,7 +121,7 @@ def make_sync_retry(settings: "RabbitMQSettings") -> Retrying:
     )
 
 
-def make_async_retry(settings: "RabbitMQSettings") -> AsyncRetrying:
+def make_async_retry(settings: RabbitMQSettings) -> AsyncRetrying:
     """Build an :class:`tenacity.AsyncRetrying` policy for aio-pika errors.
 
     Args:
@@ -152,6 +152,6 @@ def make_async_retry(settings: "RabbitMQSettings") -> AsyncRetrying:
 
 
 __all__: list[str] = [
-    "make_sync_retry",
     "make_async_retry",
+    "make_sync_retry",
 ]

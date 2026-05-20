@@ -85,8 +85,14 @@ class ManagementAPIClient:
 
     def _ensure_client(self) -> httpx.Client:
         if self._client is None or self._client.is_closed:
+            api_url = self._settings.management_api_url
+            if api_url is None:
+                raise RabbitMQAdminError(
+                    "management_api_url is required for Management API operations. "
+                    "Set the RABBITMQ_MANAGEMENT_API_URL environment variable."
+                )
             self._client = httpx.Client(
-                base_url=self._settings.management_api_url,
+                base_url=api_url,
                 auth=(
                     self._settings.effective_management_username,
                     self._settings.effective_management_password,
@@ -101,7 +107,7 @@ class ManagementAPIClient:
             self._client.close()
         self._client = None
 
-    def __enter__(self) -> "ManagementAPIClient":
+    def __enter__(self) -> ManagementAPIClient:
         self._ensure_client()
         return self
 
@@ -238,8 +244,14 @@ class AsyncManagementAPIClient:
 
     def _ensure_client(self) -> httpx.AsyncClient:
         if self._client is None or self._client.is_closed:
+            api_url = self._settings.management_api_url
+            if api_url is None:
+                raise RabbitMQAdminError(
+                    "management_api_url is required for Management API operations. "
+                    "Set the RABBITMQ_MANAGEMENT_API_URL environment variable."
+                )
             self._client = httpx.AsyncClient(
-                base_url=self._settings.management_api_url,
+                base_url=api_url,
                 auth=(
                     self._settings.effective_management_username,
                     self._settings.effective_management_password,
@@ -254,7 +266,7 @@ class AsyncManagementAPIClient:
             await self._client.aclose()
         self._client = None
 
-    async def __aenter__(self) -> "AsyncManagementAPIClient":
+    async def __aenter__(self) -> AsyncManagementAPIClient:
         self._ensure_client()
         return self
 
@@ -351,6 +363,6 @@ class AsyncManagementAPIClient:
 
 
 __all__: list[str] = [
-    "ManagementAPIClient",
     "AsyncManagementAPIClient",
+    "ManagementAPIClient",
 ]

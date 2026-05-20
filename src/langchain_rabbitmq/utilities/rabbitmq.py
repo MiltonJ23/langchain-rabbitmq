@@ -26,6 +26,7 @@ The class is designed to be used as a context manager::
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import ssl
 import uuid
@@ -55,7 +56,7 @@ from langchain_rabbitmq.utilities._retry import make_sync_retry
 
 logger = logging.getLogger(__name__)
 
-# AMQP name constraints: 1–255 bytes, no control chars (0x00–0x1F / 0x7F).
+# AMQP name constraints: 1-255 bytes, no control chars (0x00-0x1F / 0x7F).
 _MAX_AMQP_NAME_BYTES = 255
 
 
@@ -71,9 +72,7 @@ def _validate_amqp_name(name: str, label: str) -> None:
         RabbitMQValidationError: If ``name`` violates AMQP naming rules.
     """
     if len(name.encode()) > _MAX_AMQP_NAME_BYTES:
-        raise RabbitMQValidationError(
-            f"{label} name exceeds 255 UTF-8 bytes: {name!r}"
-        )
+        raise RabbitMQValidationError(f"{label} name exceeds 255 UTF-8 bytes: {name!r}")
     for ch in name:
         code = ord(ch)
         if code <= 0x1F or code == 0x7F:
@@ -187,8 +186,7 @@ class RabbitMQClient:
             RabbitMQConnectionError: If the connection cannot be established.
         """
         if (
-            self._connection is None
-            or not self._connection.is_open  # type: ignore[attr-defined]
+            self._connection is None or not self._connection.is_open  # type: ignore[attr-defined]
         ):
             self._connect_once()
         assert self._channel is not None  # guaranteed by _connect_once
@@ -243,7 +241,7 @@ class RabbitMQClient:
         try:
             if self._channel is not None and self._channel.is_open:  # type: ignore[attr-defined]
                 self._channel.close()  # type: ignore[attr-defined]
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         finally:
             self._channel = None
@@ -251,12 +249,12 @@ class RabbitMQClient:
         try:
             if self._connection is not None and self._connection.is_open:  # type: ignore[attr-defined]
                 self._connection.close()  # type: ignore[attr-defined]
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         finally:
             self._connection = None
 
-    def __enter__(self) -> "RabbitMQClient":
+    def __enter__(self) -> RabbitMQClient:
         self.connect()
         return self
 
@@ -271,10 +269,8 @@ class RabbitMQClient:
     def __del__(self) -> None:
         # Best-effort cleanup; swallow all errors to avoid issues at
         # interpreter shutdown where globals may already be freed.
-        try:
+        with contextlib.suppress(Exception):
             self.close()
-        except Exception:  # noqa: BLE001
-            pass
 
     # ------------------------------------------------------------------
     # Queue management
@@ -725,8 +721,12 @@ class RabbitMQClient:
             routing_key=str(method.routing_key),  # type: ignore[attr-defined]
             redelivered=bool(method.redelivered),  # type: ignore[attr-defined]
             headers=hdrs,
-            content_type=str(properties.content_type) if properties is not None and properties.content_type else None,  # type: ignore[attr-defined]
-            content_encoding=str(properties.content_encoding) if properties is not None and properties.content_encoding else None,  # type: ignore[attr-defined]
+            content_type=str(properties.content_type)
+            if properties is not None and properties.content_type
+            else None,  # type: ignore[attr-defined]
+            content_encoding=str(properties.content_encoding)
+            if properties is not None and properties.content_encoding
+            else None,  # type: ignore[attr-defined]
         )
 
     def ack_message(self, delivery_tag: int, *, multiple: bool = False) -> None:
@@ -831,7 +831,7 @@ class RabbitMQClient:
                 port=self._settings.port,
                 message=exc.message,
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return HealthInfo(
                 status=HealthStatus.DEGRADED,
                 host=self._settings.host,

@@ -29,7 +29,6 @@ from langchain_rabbitmq.tools.queue import DeclareQueueTool
 from langchain_rabbitmq.tools.toolkit import ALL_TOOLS, RabbitMQToolkit
 from langchain_rabbitmq.utilities._models import QueueInfo
 
-
 # ---------------------------------------------------------------------------
 # Toolkit structure
 # ---------------------------------------------------------------------------
@@ -72,9 +71,7 @@ class TestToolkitStructure:
     def test_all_tools_have_valid_args_schema(self, mock_settings: Any) -> None:
         toolkit = RabbitMQToolkit(settings=mock_settings)
         for tool in toolkit.get_tools():
-            assert tool.args_schema is not None, (
-                f"Tool {tool.name!r} has no args_schema"
-            )
+            assert tool.args_schema is not None, f"Tool {tool.name!r} has no args_schema"
             assert issubclass(tool.args_schema, BaseModel), (
                 f"Tool {tool.name!r} args_schema is not a BaseModel subclass"
             )
@@ -109,9 +106,7 @@ class TestToolkitStructure:
 class TestDirectToolInvocation:
     """Verify individual tools are invocable with a mocked AMQP client."""
 
-    def test_declare_queue_invoke(
-        self, mock_settings: Any, mock_sync_client: MagicMock
-    ) -> None:
+    def test_declare_queue_invoke(self, mock_settings: Any, mock_sync_client: MagicMock) -> None:
         tool = DeclareQueueTool(settings=mock_settings)
         with patch.object(tool, "_make_client", return_value=mock_sync_client):
             result = tool.invoke({"name": "orders", "durable": True})
@@ -119,9 +114,7 @@ class TestDirectToolInvocation:
         assert "orders" in result
         assert "declared" in result.lower()
 
-    def test_publish_message_invoke(
-        self, mock_settings: Any, mock_sync_client: MagicMock
-    ) -> None:
+    def test_publish_message_invoke(self, mock_settings: Any, mock_sync_client: MagicMock) -> None:
         tool = PublishMessageTool(settings=mock_settings)
         with patch.object(tool, "_make_client", return_value=mock_sync_client):
             result = tool.invoke(
@@ -137,9 +130,7 @@ class TestDirectToolInvocation:
         assert "orders" in result
         assert "published" in result.lower()
 
-    def test_check_health_invoke(
-        self, mock_settings: Any, mock_sync_client: MagicMock
-    ) -> None:
+    def test_check_health_invoke(self, mock_settings: Any, mock_sync_client: MagicMock) -> None:
         tool = CheckHealthTool(settings=mock_settings)
         with patch.object(tool, "_make_client", return_value=mock_sync_client):
             result = tool.invoke({})
@@ -185,16 +176,12 @@ class TestDirectToolInvocation:
         assert "orders" in result
         assert "declared" in result.lower()
 
-    def test_tool_error_returns_string_not_exception(
-        self, mock_settings: Any
-    ) -> None:
+    def test_tool_error_returns_string_not_exception(self, mock_settings: Any) -> None:
         """Tools must return agent-readable error strings, not raise exceptions."""
         error_client = MagicMock()
         error_client.__enter__ = MagicMock(return_value=error_client)
         error_client.__exit__ = MagicMock(return_value=False)
-        error_client.declare_queue.side_effect = RabbitMQConnectionError(
-            "broker unreachable"
-        )
+        error_client.declare_queue.side_effect = RabbitMQConnectionError("broker unreachable")
 
         tool = DeclareQueueTool(settings=mock_settings)
         with patch.object(tool, "_make_client", return_value=error_client):
@@ -260,16 +247,10 @@ class TestDirectToolInvocation:
         }
 
         with (
-            patch.object(
-                _RabbitMQBaseTool, "_make_client", return_value=mock_sync_client
-            ),
-            patch.object(
-                admin_module, "ManagementAPIClient", return_value=mock_mgmt
-            ),
+            patch.object(_RabbitMQBaseTool, "_make_client", return_value=mock_sync_client),
+            patch.object(admin_module, "ManagementAPIClient", return_value=mock_mgmt),
         ):
             for tool in toolkit.get_tools():
                 inputs = min_inputs.get(tool.name, {})
                 result = tool.invoke(inputs)
-                assert isinstance(result, str), (
-                    f"Tool {tool.name!r} did not return a string"
-                )
+                assert isinstance(result, str), f"Tool {tool.name!r} did not return a string"

@@ -6,14 +6,17 @@ Covers declare, get_info, purge, bind, unbind, and delete for the sync
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
-from langchain_rabbitmq.config import RabbitMQSettings
 from langchain_rabbitmq.exceptions import RabbitMQChannelError
-from langchain_rabbitmq.utilities.async_rabbitmq import AsyncRabbitMQClient
-from langchain_rabbitmq.utilities.rabbitmq import RabbitMQClient
 
 from .conftest import _unique_name
+
+if TYPE_CHECKING:
+    from langchain_rabbitmq.utilities.async_rabbitmq import AsyncRabbitMQClient
+    from langchain_rabbitmq.utilities.rabbitmq import RabbitMQClient
 
 pytestmark = pytest.mark.integration
 
@@ -46,9 +49,7 @@ class TestSyncQueueLifecycle:
         assert info.name == name
         sync_client.delete_queue(name)
 
-    def test_get_queue_info_missing_raises(
-        self, sync_client: RabbitMQClient
-    ) -> None:
+    def test_get_queue_info_missing_raises(self, sync_client: RabbitMQClient) -> None:
         with pytest.raises(RabbitMQChannelError):
             sync_client.get_queue_info("nonexistent.queue.xyz.abc")
 
@@ -56,11 +57,8 @@ class TestSyncQueueLifecycle:
         name = _unique_name("test.purge")
         sync_client.declare_queue(name, durable=False)
         # Publish a message directly via pika to have something to purge
-        import pika  # type: ignore[import-untyped]
 
-        sync_client.publish_message(
-            exchange="", routing_key=name, body=b"purge-me"
-        )
+        sync_client.publish_message(exchange="", routing_key=name, body=b"purge-me")
         purged = sync_client.purge_queue(name)
         assert purged >= 1
         sync_client.delete_queue(name)
@@ -91,9 +89,7 @@ class TestSyncQueueLifecycle:
 
 class TestAsyncQueueLifecycle:
     @pytest.mark.asyncio
-    async def test_declare_and_delete_async(
-        self, async_client: AsyncRabbitMQClient
-    ) -> None:
+    async def test_declare_and_delete_async(self, async_client: AsyncRabbitMQClient) -> None:
         name = _unique_name("test.aqueue")
         info = await async_client.declare_queue(name, durable=False)
         assert info.name == name
@@ -101,9 +97,7 @@ class TestAsyncQueueLifecycle:
         assert deleted == 0
 
     @pytest.mark.asyncio
-    async def test_get_queue_info_async(
-        self, async_client: AsyncRabbitMQClient
-    ) -> None:
+    async def test_get_queue_info_async(self, async_client: AsyncRabbitMQClient) -> None:
         name = _unique_name("test.apassive")
         await async_client.declare_queue(name, durable=False)
         info = await async_client.get_queue_info(name)
@@ -111,9 +105,7 @@ class TestAsyncQueueLifecycle:
         await async_client.delete_queue(name)
 
     @pytest.mark.asyncio
-    async def test_purge_queue_async(
-        self, async_client: AsyncRabbitMQClient
-    ) -> None:
+    async def test_purge_queue_async(self, async_client: AsyncRabbitMQClient) -> None:
         name = _unique_name("test.apurge")
         await async_client.declare_queue(name, durable=False)
         await async_client.publish_message("", name, b"hello")
@@ -122,9 +114,7 @@ class TestAsyncQueueLifecycle:
         await async_client.delete_queue(name)
 
     @pytest.mark.asyncio
-    async def test_bind_unbind_async(
-        self, async_client: AsyncRabbitMQClient
-    ) -> None:
+    async def test_bind_unbind_async(self, async_client: AsyncRabbitMQClient) -> None:
         q = _unique_name("test.abindq")
         ex = _unique_name("test.abindex")
         await async_client.declare_queue(q, durable=False)

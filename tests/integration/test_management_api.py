@@ -7,9 +7,10 @@ Management Plugin is available on port 15672.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
-from langchain_rabbitmq.config import RabbitMQSettings
 from langchain_rabbitmq.utilities.management import (
     AsyncManagementAPIClient,
     ManagementAPIClient,
@@ -17,6 +18,9 @@ from langchain_rabbitmq.utilities.management import (
 from langchain_rabbitmq.utilities.rabbitmq import RabbitMQClient
 
 from .conftest import _unique_name
+
+if TYPE_CHECKING:
+    from langchain_rabbitmq.config import RabbitMQSettings
 
 pytestmark = pytest.mark.integration
 
@@ -64,9 +68,7 @@ class TestSyncManagementAPI:
         for ex in exchanges:
             assert ex.get("vhost") == "/"
 
-    def test_list_queues_empty_by_default(
-        self, rabbitmq_settings: RabbitMQSettings
-    ) -> None:
+    def test_list_queues_empty_by_default(self, rabbitmq_settings: RabbitMQSettings) -> None:
         # Declare a brand-new queue and make sure it appears
         queue_name = _unique_name("mgmt.list.q")
         sync = RabbitMQClient(rabbitmq_settings)
@@ -104,9 +106,7 @@ class TestSyncManagementAPI:
 
         assert isinstance(bindings, list)
 
-    def test_list_bindings_after_bind(
-        self, rabbitmq_settings: RabbitMQSettings
-    ) -> None:
+    def test_list_bindings_after_bind(self, rabbitmq_settings: RabbitMQSettings) -> None:
         queue_name = _unique_name("mgmt.bind.q")
         exchange_name = _unique_name("mgmt.bind.ex")
         routing_key = "mgmt.rk"
@@ -124,8 +124,7 @@ class TestSyncManagementAPI:
             bindings = client.list_bindings(vhost="/")
 
         binding_keys = {
-            (b.get("source"), b.get("destination"), b.get("routing_key"))
-            for b in bindings
+            (b.get("source"), b.get("destination"), b.get("routing_key")) for b in bindings
         }
         assert (exchange_name, queue_name, routing_key) in binding_keys
 
@@ -138,9 +137,7 @@ class TestSyncManagementAPI:
         finally:
             sync.close()
 
-    def test_context_manager_closes_client(
-        self, rabbitmq_settings: RabbitMQSettings
-    ) -> None:
+    def test_context_manager_closes_client(self, rabbitmq_settings: RabbitMQSettings) -> None:
         client = ManagementAPIClient(rabbitmq_settings)
         with client:
             _ = client.get_overview()
@@ -155,9 +152,7 @@ class TestSyncManagementAPI:
 
 class TestAsyncManagementAPI:
     @pytest.mark.asyncio
-    async def test_get_overview_async(
-        self, rabbitmq_settings: RabbitMQSettings
-    ) -> None:
+    async def test_get_overview_async(self, rabbitmq_settings: RabbitMQSettings) -> None:
         async with AsyncManagementAPIClient(rabbitmq_settings) as client:
             overview = await client.get_overview()
 
@@ -165,9 +160,7 @@ class TestAsyncManagementAPI:
         assert "rabbitmq_version" in overview
 
     @pytest.mark.asyncio
-    async def test_get_node_stats_async(
-        self, rabbitmq_settings: RabbitMQSettings
-    ) -> None:
+    async def test_get_node_stats_async(self, rabbitmq_settings: RabbitMQSettings) -> None:
         async with AsyncManagementAPIClient(rabbitmq_settings) as client:
             nodes = await client.get_node_stats()
 
@@ -175,9 +168,7 @@ class TestAsyncManagementAPI:
         assert len(nodes) >= 1
 
     @pytest.mark.asyncio
-    async def test_list_exchanges_async(
-        self, rabbitmq_settings: RabbitMQSettings
-    ) -> None:
+    async def test_list_exchanges_async(self, rabbitmq_settings: RabbitMQSettings) -> None:
         async with AsyncManagementAPIClient(rabbitmq_settings) as client:
             exchanges = await client.list_exchanges()
 
@@ -187,9 +178,7 @@ class TestAsyncManagementAPI:
         assert "amq.direct" in names
 
     @pytest.mark.asyncio
-    async def test_list_queues_async(
-        self, rabbitmq_settings: RabbitMQSettings
-    ) -> None:
+    async def test_list_queues_async(self, rabbitmq_settings: RabbitMQSettings) -> None:
         queue_name = _unique_name("amgmt.q")
         sync = RabbitMQClient(rabbitmq_settings)
         sync.connect()
@@ -212,18 +201,14 @@ class TestAsyncManagementAPI:
             sync.close()
 
     @pytest.mark.asyncio
-    async def test_list_bindings_async(
-        self, rabbitmq_settings: RabbitMQSettings
-    ) -> None:
+    async def test_list_bindings_async(self, rabbitmq_settings: RabbitMQSettings) -> None:
         async with AsyncManagementAPIClient(rabbitmq_settings) as client:
             bindings = await client.list_bindings(vhost="/")
 
         assert isinstance(bindings, list)
 
     @pytest.mark.asyncio
-    async def test_context_manager_async_closes(
-        self, rabbitmq_settings: RabbitMQSettings
-    ) -> None:
+    async def test_context_manager_async_closes(self, rabbitmq_settings: RabbitMQSettings) -> None:
         client = AsyncManagementAPIClient(rabbitmq_settings)
         async with client:
             _ = await client.get_overview()
