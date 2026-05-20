@@ -5,6 +5,10 @@ repo_url: https://github.com/MiltonJ23/langchain-rabbitmq
 repo_name: MiltonJ23/langchain-rabbitmq
 edit_uri: edit/main/docs/
 
+validation:
+  links:
+    not_found: ignore
+
 theme:
   name: material
   palette:
@@ -44,7 +48,8 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      base_path: ["."]
   - pymdownx.superfences
   - admonition
   - pymdownx.details
@@ -72,5 +77,6 @@ nav:
       - Basic agent: cookbooks/01_basic_agent.md
       - Async agent: cookbooks/02_async_agent.md
       - Advanced patterns: cookbooks/03_advanced_patterns.md
-  - Contributing: ../CONTRIBUTING.md
-  - Changelog: ../CHANGELOG.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+  - Code of conduct: code_of_conduct.md

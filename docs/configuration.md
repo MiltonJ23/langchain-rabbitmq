@@ -67,9 +67,7 @@ tools   = toolkit.get_tools()
 
 ## Settings model reference
 
-::: langchain_rabbitmq.config.RabbitMQSettings
-    options:
-      show_source: true
+See the [API reference](api/config.md) for the full `RabbitMQSettings` field list.
 
 ---
 
