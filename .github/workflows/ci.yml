@@ -25,7 +25,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install ruff
-        run: pip install ruff
+        run: pip install "ruff>=0.3.0"
 
       - name: Check formatting
         run: ruff format --check .
@@ -34,10 +34,10 @@ jobs:
         run: ruff check .
 
   # ---------------------------------------------------------------------------
-  # Type Check
+  # Type Check — pyrefly (primary, strict)
   # ---------------------------------------------------------------------------
   typecheck:
-    name: Type Check (pyright strict)
+    name: Type Check (pyrefly strict)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,13 +46,13 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install package and pyright
+      - name: Install package and pyrefly
         run: |
           pip install -e ".[dev]"
-          pip install pyright
+          pip install "pyrefly>=1.0"
 
-      - name: Run pyright
-        run: pyright --pythonversion 3.11
+      - name: Run pyrefly
+        run: pyrefly check src/ --output-format github --progress-bar no
 
   # ---------------------------------------------------------------------------
   # Security
@@ -68,7 +68,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install bandit
-        run: pip install bandit[toml]
+        run: pip install "bandit[toml]>=1.7"
 
       - name: Run bandit
         run: bandit -r src/ -c pyproject.toml
@@ -77,12 +77,11 @@ jobs:
   # Tests (matrix: Python × OS)
   # ---------------------------------------------------------------------------
   tests:
-    name: Tests (Python ${{ matrix.python-version }} / ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     services:
@@ -110,13 +109,20 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install package and test dependencies
+      - name: Install package and dependencies
         run: pip install -e ".[dev,test]"
 
-      - name: Wait for RabbitMQ to be ready
+      - name: Wait for RabbitMQ
         run: |
           for i in $(seq 1 30); do
-            python -c "import pika; pika.BlockingConnection(pika.URLParameters('amqp://guest:guest@localhost:5672/')).close()" && break
+            python -c "
+          import pika, sys
+          try:
+              pika.BlockingConnection(pika.URLParameters('amqp://guest:guest@localhost:5672/')).close()
+              sys.exit(0)
+          except Exception:
+              sys.exit(1)
+          " && break
             echo "Waiting for RabbitMQ... ($i/30)"
             sleep 2
           done
