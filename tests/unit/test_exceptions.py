@@ -17,7 +17,6 @@ from langchain_rabbitmq.exceptions import (
 pytestmark = pytest.mark.unit
 
 
-
 class TestErrorCategory:
     def test_values_are_lowercase_strings(self) -> None:
         assert ErrorCategory.CONNECTION.value == "connection"

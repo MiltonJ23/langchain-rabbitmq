@@ -10,7 +10,6 @@ from langchain_rabbitmq.config import RabbitMQSettings
 pytestmark = pytest.mark.unit
 
 
-
 class TestDefaults:
     def test_default_host(self) -> None:
         s = RabbitMQSettings()

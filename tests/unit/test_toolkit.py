@@ -10,6 +10,7 @@ from langchain_rabbitmq.tools.toolkit import ALL_TOOLS, RabbitMQToolkit
 
 pytestmark = pytest.mark.unit
 
+
 class TestRabbitMQToolkit:
     def test_get_tools_returns_21_tools(self, settings: RabbitMQSettings) -> None:
         toolkit = RabbitMQToolkit(settings=settings)

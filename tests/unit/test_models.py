@@ -19,7 +19,6 @@ from langchain_rabbitmq.utilities._models import (
 pytestmark = pytest.mark.unit
 
 
-
 class TestExchangeType:
     def test_values(self) -> None:
         assert ExchangeType.DIRECT.value == "direct"
