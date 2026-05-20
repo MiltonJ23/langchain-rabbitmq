@@ -21,7 +21,7 @@ format-check:
 	ruff format --check src tests
 
 typecheck:
-	pyright src
+	pyrefly check src/ --progress-bar no
 
 security:
 	bandit -r src -c pyproject.toml
