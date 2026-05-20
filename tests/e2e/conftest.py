@@ -24,6 +24,8 @@ from langchain_rabbitmq.utilities._models import (
     QueueInfo,
 )
 
+pytestmark = pytest.mark.e2e
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
 

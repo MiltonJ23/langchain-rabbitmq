@@ -29,6 +29,9 @@ from langchain_rabbitmq.tools.queue import DeclareQueueTool
 from langchain_rabbitmq.tools.toolkit import ALL_TOOLS, RabbitMQToolkit
 from langchain_rabbitmq.utilities._models import QueueInfo
 
+pytestmark = pytest.mark.e2e
+
+
 # ---------------------------------------------------------------------------
 # Toolkit structure
 # ---------------------------------------------------------------------------

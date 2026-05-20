@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from langchain_rabbitmq.exceptions import (
     RabbitMQChannelError,
     RabbitMQValidationError,
@@ -16,6 +18,8 @@ from langchain_rabbitmq.tools.exchange import (
     DeleteExchangeTool,
 )
 from langchain_rabbitmq.utilities._models import BindingInfo, ExchangeInfo, ExchangeType
+
+pytestmark = pytest.mark.unit
 
 if TYPE_CHECKING:
     from langchain_rabbitmq.config import RabbitMQSettings

@@ -27,6 +27,9 @@ from langchain_rabbitmq.exceptions import RabbitMQConnectionError
 from langchain_rabbitmq.tools._base import _RabbitMQBaseTool
 from langchain_rabbitmq.tools.toolkit import RabbitMQToolkit
 
+pytestmark = pytest.mark.e2e
+
+
 # ---------------------------------------------------------------------------
 # Scenario 1 — declare queue then publish message
 # ---------------------------------------------------------------------------

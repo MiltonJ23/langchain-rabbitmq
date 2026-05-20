@@ -28,6 +28,9 @@ from langchain_rabbitmq.utilities._retry import (
     make_sync_retry,
 )
 
+pytestmark = pytest.mark.unit
+
+
 
 @pytest.fixture()
 def settings() -> RabbitMQSettings:

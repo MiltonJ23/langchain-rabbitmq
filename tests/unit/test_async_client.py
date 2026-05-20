@@ -25,6 +25,9 @@ from langchain_rabbitmq.utilities._models import (
 )
 from langchain_rabbitmq.utilities.async_rabbitmq import AsyncRabbitMQClient
 
+pytestmark = pytest.mark.unit
+
+
 _MODULE = "langchain_rabbitmq.utilities.async_rabbitmq"
 
 

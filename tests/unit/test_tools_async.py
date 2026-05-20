@@ -59,6 +59,9 @@ from langchain_rabbitmq.utilities._models import (
 from langchain_rabbitmq.utilities.async_rabbitmq import AsyncRabbitMQClient
 from langchain_rabbitmq.utilities.rabbitmq import RabbitMQClient
 
+pytestmark = pytest.mark.unit
+
+
 _ADMIN_MODULE = "langchain_rabbitmq.tools.admin"
 
 

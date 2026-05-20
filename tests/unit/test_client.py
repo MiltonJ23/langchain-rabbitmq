@@ -23,6 +23,9 @@ from langchain_rabbitmq.utilities.rabbitmq import (
     _validate_exchange_name,
 )
 
+pytestmark = pytest.mark.unit
+
+
 if TYPE_CHECKING:
     from langchain_rabbitmq.config import RabbitMQSettings
 
