@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.9 or later
+- Python 3.10 or later
 - Docker (for integration / E2E tests; not required for production use)
 - A running RabbitMQ broker (3.9+ recommended; 3.12+ for full Management API support)
 

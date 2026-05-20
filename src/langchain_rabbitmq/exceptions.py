@@ -21,7 +21,7 @@ Example:
 from __future__ import annotations
 
 from enum import Enum
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 
 class ErrorCategory(str, Enum):
@@ -61,7 +61,7 @@ class RabbitMQToolException(Exception):
     def __init__(
         self,
         message: str,
-        cause: Optional[BaseException] = None,
+        cause: BaseException | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message

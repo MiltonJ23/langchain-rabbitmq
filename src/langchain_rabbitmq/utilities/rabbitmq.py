@@ -30,7 +30,7 @@ import contextlib
 import logging
 import ssl
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 import pika  # type: ignore[import-untyped]
 import pika.exceptions  # type: ignore[import-untyped]
@@ -127,11 +127,11 @@ class RabbitMQClient:
             client.close()
     """
 
-    def __init__(self, settings: Optional[RabbitMQSettings] = None) -> None:
+    def __init__(self, settings: RabbitMQSettings | None = None) -> None:
         self._settings: RabbitMQSettings = settings or RabbitMQSettings()
         # pika objects — None until connect() is called
-        self._connection: Optional[Any] = None  # pika.BlockingConnection
-        self._channel: Optional[Any] = None  # pika.adapters.blocking_connection.BlockingChannel
+        self._connection: Any | None = None  # pika.BlockingConnection
+        self._channel: Any | None = None  # pika.adapters.blocking_connection.BlockingChannel
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -152,7 +152,7 @@ class RabbitMQClient:
             password=self._settings.password.get_secret_value(),
         )
 
-        ssl_options: Optional[pika.SSLOptions] = None  # type: ignore[attr-defined]
+        ssl_options: pika.SSLOptions | None = None  # type: ignore[attr-defined]
         if self._settings.ssl_enabled:
             ctx = ssl.create_default_context()
             if self._settings.ssl_ca_certs:
@@ -260,9 +260,9 @@ class RabbitMQClient:
 
     def __exit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[Any],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: Any | None,
     ) -> None:
         self.close()
 
@@ -284,7 +284,7 @@ class RabbitMQClient:
         exclusive: bool = False,
         auto_delete: bool = False,
         passive: bool = False,
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
     ) -> QueueInfo:
         """Declare (or passively inspect) a queue.
 
@@ -400,7 +400,7 @@ class RabbitMQClient:
         queue: str,
         exchange: str,
         routing_key: str = "",
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
     ) -> None:
         """Bind a queue to an exchange.
 
@@ -436,7 +436,7 @@ class RabbitMQClient:
         queue: str,
         exchange: str,
         routing_key: str = "",
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
     ) -> None:
         """Remove a binding between a queue and an exchange.
 
@@ -496,7 +496,7 @@ class RabbitMQClient:
         durable: bool = False,
         auto_delete: bool = False,
         passive: bool = False,
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
     ) -> ExchangeInfo:
         """Declare (or passively inspect) an exchange.
 
@@ -569,7 +569,7 @@ class RabbitMQClient:
         destination: str,
         source: str,
         routing_key: str = "",
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
     ) -> BindingInfo:
         """Create an exchange-to-exchange binding (E2E binding).
 
@@ -621,10 +621,10 @@ class RabbitMQClient:
         body: bytes,
         *,
         persistent: bool = False,
-        content_type: Optional[str] = None,
-        content_encoding: Optional[str] = None,
-        headers: Optional[dict[str, Any]] = None,
-        expiration: Optional[str] = None,
+        content_type: str | None = None,
+        content_encoding: str | None = None,
+        headers: dict[str, Any] | None = None,
+        expiration: str | None = None,
         mandatory: bool = False,
     ) -> None:
         """Publish a single message to an exchange.
@@ -677,7 +677,7 @@ class RabbitMQClient:
                 cause=exc,
             ) from exc
 
-    def consume_message(self, queue: str, *, auto_ack: bool = False) -> Optional[MessageResult]:
+    def consume_message(self, queue: str, *, auto_ack: bool = False) -> MessageResult | None:
         """Pull a single message from a queue (``basic.get``).
 
         Args:
@@ -860,7 +860,7 @@ class RabbitMQClient:
             self._connection.server_properties  # type: ignore[attr-defined]
         )
 
-        def _decode(val: Any) -> Optional[str]:
+        def _decode(val: Any) -> str | None:
             if isinstance(val, bytes):
                 return val.decode("utf-8", errors="replace")
             if isinstance(val, str):

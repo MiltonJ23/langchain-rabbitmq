@@ -27,7 +27,7 @@ Example:
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -178,7 +178,7 @@ class DeclareQueueTool(_RabbitMQBaseTool):
         durable: bool = False,
         exclusive: bool = False,
         auto_delete: bool = False,
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
         **_: Any,
     ) -> str:
         """Declare the queue and return a summary string.
@@ -215,7 +215,7 @@ class DeclareQueueTool(_RabbitMQBaseTool):
         durable: bool = False,
         exclusive: bool = False,
         auto_delete: bool = False,
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
         **_: Any,
     ) -> str:
         async with self._make_async_client() as client:
@@ -342,7 +342,7 @@ class BindQueueTool(_RabbitMQBaseTool):
         queue: str,
         exchange: str,
         routing_key: str = "",
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
         **_: Any,
     ) -> str:
         with self._make_client() as client:
@@ -355,7 +355,7 @@ class BindQueueTool(_RabbitMQBaseTool):
         queue: str,
         exchange: str,
         routing_key: str = "",
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
         **_: Any,
     ) -> str:
         async with self._make_async_client() as client:
@@ -392,7 +392,7 @@ class UnbindQueueTool(_RabbitMQBaseTool):
         queue: str,
         exchange: str,
         routing_key: str = "",
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
         **_: Any,
     ) -> str:
         with self._make_client() as client:
@@ -405,7 +405,7 @@ class UnbindQueueTool(_RabbitMQBaseTool):
         queue: str,
         exchange: str,
         routing_key: str = "",
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
         **_: Any,
     ) -> str:
         async with self._make_async_client() as client:

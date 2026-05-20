@@ -197,7 +197,7 @@ from langchain_rabbitmq.exceptions import (
 
 | langchain-rabbitmq | langchain-core | pika   | aio-pika | RabbitMQ | Python      |
 |--------------------|----------------|--------|----------|----------|-------------|
-| 0.1.x              | ≥ 0.2.0        | ≥ 1.3  | ≥ 9.0    | 3.9 – 3.13 | 3.9 – 3.12 |
+| 0.1.x              | ≥ 0.2.0        | ≥ 1.3  | ≥ 9.0    | 3.9 – 3.13 | 3.10 – 3.12 |
 
 ---
 
