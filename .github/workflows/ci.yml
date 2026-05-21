@@ -1,0 +1,186 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [develop, main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Lint & Format
+  # ---------------------------------------------------------------------------
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ruff
+        run: pip install "ruff>=0.3.0"
+
+      - name: Check formatting
+        run: ruff format --check .
+
+      - name: Check linting
+        run: ruff check .
+
+  # ---------------------------------------------------------------------------
+  # Type Check — pyrefly (primary, strict)
+  # ---------------------------------------------------------------------------
+  typecheck:
+    name: Type Check (pyrefly strict)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package and pyrefly
+        run: |
+          pip install -e ".[dev]"
+          pip install "pyrefly>=1.0"
+
+      - name: Run pyrefly
+        run: pyrefly check src/ --output-format github --progress-bar no
+
+  # ---------------------------------------------------------------------------
+  # Security
+  # ---------------------------------------------------------------------------
+  security:
+    name: Security Scan (bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install bandit
+        run: pip install "bandit[toml]>=1.7"
+
+      - name: Run bandit
+        run: bandit -r src/ -c pyproject.toml
+
+  # ---------------------------------------------------------------------------
+  # Tests (matrix: Python × OS)
+  # ---------------------------------------------------------------------------
+  tests:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    services:
+      rabbitmq:
+        image: rabbitmq:3.12-management
+        ports:
+          - 5672:5672
+          - 15672:15672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Only the URL and management API endpoint are needed.
+      # Management credentials fall back to the AMQP user/password already
+      # embedded in RABBITMQ_URL; setting RABBITMQ_MANAGEMENT_PASSWORD here
+      # would pollute unit tests that rely on the fallback logic.
+      RABBITMQ_URL: amqp://guest:guest@localhost:5672/
+      RABBITMQ_MANAGEMENT_API_URL: http://localhost:15672
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package and dependencies
+        run: pip install -e ".[dev,test]"
+
+      - name: Wait for RabbitMQ
+        run: |
+          for i in $(seq 1 30); do
+            python -c "
+          import pika, sys
+          try:
+              pika.BlockingConnection(pika.URLParameters('amqp://guest:guest@localhost:5672/')).close()
+              sys.exit(0)
+          except Exception:
+              sys.exit(1)
+          " && break
+            echo "Waiting for RabbitMQ... ($i/30)"
+            sleep 2
+          done
+
+      - name: Run unit tests
+        run: |
+          pytest tests/unit/ -m unit --no-header -q \
+            --cov=langchain_rabbitmq --cov-report=xml:coverage-unit.xml
+
+      - name: Run integration tests
+        run: |
+          pytest tests/integration/ -m integration --no-header -q \
+            --cov=langchain_rabbitmq --cov-report=xml:coverage-integration.xml \
+            --cov-append
+
+      - name: Run e2e tests
+        run: |
+          pytest tests/e2e/ -m e2e --no-header -q \
+            --cov=langchain_rabbitmq --cov-report=xml:coverage-e2e.xml \
+            --cov-append
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: matrix.python-version == '3.11'
+        with:
+          name: coverage-xml
+          path: coverage-e2e.xml
+
+  # ---------------------------------------------------------------------------
+  # Documentation — deploy to GitHub Pages on push to main
+  # ---------------------------------------------------------------------------
+  deploy-docs:
+    name: Deploy Documentation
+    needs: [lint, typecheck, security, tests]
+    runs-on: ubuntu-latest
+    # Only run when a commit lands on main (not on PRs or feature branches).
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write   # required to push to the gh-pages branch
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so mkdocs can resolve git-revision dates
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install documentation dependencies
+        run: pip install -e ".[docs]"
+
+      - name: Configure git identity for gh-deploy
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Build and deploy docs to GitHub Pages
+        run: mkdocs gh-deploy --force
