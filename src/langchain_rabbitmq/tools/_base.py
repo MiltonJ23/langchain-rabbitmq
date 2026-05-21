@@ -29,7 +29,7 @@ Example:
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from langchain_core.tools import BaseTool
 from pydantic import Field
@@ -131,7 +131,7 @@ class _RabbitMQBaseTool(BaseTool):
     def _run(
         self,
         *args: Any,
-        run_manager: Optional[CallbackManagerForToolRun] = None,
+        run_manager: CallbackManagerForToolRun | None = None,
         **kwargs: Any,
     ) -> str:
         """Invoke the tool synchronously, converting exceptions to strings.
@@ -157,7 +157,7 @@ class _RabbitMQBaseTool(BaseTool):
     async def _arun(
         self,
         *args: Any,
-        run_manager: Optional[AsyncCallbackManagerForToolRun] = None,
+        run_manager: AsyncCallbackManagerForToolRun | None = None,
         **kwargs: Any,
     ) -> str:
         """Invoke the tool asynchronously, converting exceptions to strings.

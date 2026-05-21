@@ -7,6 +7,8 @@ from pydantic import SecretStr, ValidationError
 
 from langchain_rabbitmq.config import RabbitMQSettings
 
+pytestmark = pytest.mark.unit
+
 
 class TestDefaults:
     def test_default_host(self) -> None:
@@ -99,7 +101,9 @@ class TestAmqpUrl:
 
 
 class TestManagementCredentials:
-    def test_management_username_falls_back_to_amqp(self) -> None:
+    def test_management_username_falls_back_to_amqp(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Clear any RABBITMQ_MANAGEMENT_USERNAME env var so the fallback is exercised.
+        monkeypatch.delenv("RABBITMQ_MANAGEMENT_USERNAME", raising=False)
         s = RabbitMQSettings(username="admin")
         assert s.effective_management_username == "admin"
 
@@ -107,7 +111,10 @@ class TestManagementCredentials:
         s = RabbitMQSettings(management_username="mgmt_user")
         assert s.effective_management_username == "mgmt_user"
 
-    def test_management_password_falls_back_to_amqp(self) -> None:
+    def test_management_password_falls_back_to_amqp(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # RABBITMQ_MANAGEMENT_PASSWORD in the environment would short-circuit the
+        # fallback; clear it so this test exercises the intended code path.
+        monkeypatch.delenv("RABBITMQ_MANAGEMENT_PASSWORD", raising=False)
         s = RabbitMQSettings(password=SecretStr("s3cr3t"))  # type: ignore[arg-type]
         assert s.effective_management_password == "s3cr3t"
 

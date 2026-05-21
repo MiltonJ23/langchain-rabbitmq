@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from langchain_rabbitmq.exceptions import (
     RabbitMQMessageError,
     RabbitMQValidationError,
@@ -18,6 +20,8 @@ from langchain_rabbitmq.tools.message import (
     RejectMessageTool,
 )
 from langchain_rabbitmq.utilities._models import MessageResult
+
+pytestmark = pytest.mark.unit
 
 if TYPE_CHECKING:
     from langchain_rabbitmq.config import RabbitMQSettings

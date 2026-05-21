@@ -31,7 +31,7 @@ Example:
 from __future__ import annotations
 
 import json
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -236,7 +236,7 @@ class PublishMessageTool(_RabbitMQBaseTool):
         exchange: str = "",
         persistent: bool = False,
         content_type: str = "text/plain",
-        headers: Optional[dict[str, Any]] = None,
+        headers: dict[str, Any] | None = None,
         expiration_ms: int = 0,
         **_: Any,
     ) -> str:
@@ -267,7 +267,7 @@ class PublishMessageTool(_RabbitMQBaseTool):
         exchange: str = "",
         persistent: bool = False,
         content_type: str = "text/plain",
-        headers: Optional[dict[str, Any]] = None,
+        headers: dict[str, Any] | None = None,
         expiration_ms: int = 0,
         **_: Any,
     ) -> str:

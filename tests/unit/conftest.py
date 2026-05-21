@@ -21,6 +21,8 @@ from langchain_rabbitmq.utilities._models import (
     QueueInfo,
 )
 
+pytestmark = pytest.mark.unit
+
 # ---------------------------------------------------------------------------
 # Settings
 # ---------------------------------------------------------------------------

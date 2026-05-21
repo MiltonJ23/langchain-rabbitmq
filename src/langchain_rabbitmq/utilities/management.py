@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import logging
 import urllib.parse
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -75,9 +75,9 @@ class ManagementAPIClient:
                 print(overview["rabbitmq_version"])
     """
 
-    def __init__(self, settings: Optional[RabbitMQSettings] = None) -> None:
+    def __init__(self, settings: RabbitMQSettings | None = None) -> None:
         self._settings: RabbitMQSettings = settings or RabbitMQSettings()
-        self._client: Optional[httpx.Client] = None
+        self._client: httpx.Client | None = None
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -150,7 +150,7 @@ class ManagementAPIClient:
     # API methods
     # ------------------------------------------------------------------
 
-    def list_queues(self, vhost: Optional[str] = None) -> list[dict[str, Any]]:
+    def list_queues(self, vhost: str | None = None) -> list[dict[str, Any]]:
         """List all queues, optionally filtered by virtual host.
 
         Args:
@@ -166,7 +166,7 @@ class ManagementAPIClient:
         path = f"/api/queues/{_encode_vhost(vhost)}" if vhost else "/api/queues"
         return list(self._get(path))  # type: ignore[arg-type]
 
-    def list_exchanges(self, vhost: Optional[str] = None) -> list[dict[str, Any]]:
+    def list_exchanges(self, vhost: str | None = None) -> list[dict[str, Any]]:
         """List all exchanges, optionally filtered by virtual host.
 
         Args:
@@ -181,7 +181,7 @@ class ManagementAPIClient:
         path = f"/api/exchanges/{_encode_vhost(vhost)}" if vhost else "/api/exchanges"
         return list(self._get(path))  # type: ignore[arg-type]
 
-    def list_bindings(self, vhost: Optional[str] = None) -> list[dict[str, Any]]:
+    def list_bindings(self, vhost: str | None = None) -> list[dict[str, Any]]:
         """List all bindings, optionally filtered by virtual host.
 
         Args:
@@ -234,9 +234,9 @@ class AsyncManagementAPIClient:
                 queues = await client.list_queues()
     """
 
-    def __init__(self, settings: Optional[RabbitMQSettings] = None) -> None:
+    def __init__(self, settings: RabbitMQSettings | None = None) -> None:
         self._settings: RabbitMQSettings = settings or RabbitMQSettings()
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -309,7 +309,7 @@ class AsyncManagementAPIClient:
     # API methods
     # ------------------------------------------------------------------
 
-    async def list_queues(self, vhost: Optional[str] = None) -> list[dict[str, Any]]:
+    async def list_queues(self, vhost: str | None = None) -> list[dict[str, Any]]:
         """List all queues asynchronously.
 
         Args:
@@ -321,7 +321,7 @@ class AsyncManagementAPIClient:
         path = f"/api/queues/{_encode_vhost(vhost)}" if vhost else "/api/queues"
         return list(await self._aget(path))  # type: ignore[arg-type]
 
-    async def list_exchanges(self, vhost: Optional[str] = None) -> list[dict[str, Any]]:
+    async def list_exchanges(self, vhost: str | None = None) -> list[dict[str, Any]]:
         """List all exchanges asynchronously.
 
         Args:
@@ -333,7 +333,7 @@ class AsyncManagementAPIClient:
         path = f"/api/exchanges/{_encode_vhost(vhost)}" if vhost else "/api/exchanges"
         return list(await self._aget(path))  # type: ignore[arg-type]
 
-    async def list_bindings(self, vhost: Optional[str] = None) -> list[dict[str, Any]]:
+    async def list_bindings(self, vhost: str | None = None) -> list[dict[str, Any]]:
         """List all bindings asynchronously.
 
         Args:

@@ -17,6 +17,9 @@ from langchain_rabbitmq.utilities.management import (
     _encode_vhost,
 )
 
+pytestmark = pytest.mark.unit
+
+
 _BASE = "http://localhost:15672"
 
 

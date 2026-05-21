@@ -24,7 +24,6 @@ Example:
 
 from __future__ import annotations
 
-from typing import Optional
 from urllib.parse import quote
 
 from pydantic import Field, SecretStr, field_validator, model_validator
@@ -137,15 +136,15 @@ class RabbitMQSettings(BaseSettings):
         default=False,
         description="Enable TLS for the AMQP connection",
     )
-    ssl_ca_certs: Optional[str] = Field(
+    ssl_ca_certs: str | None = Field(
         default=None,
         description="Filesystem path to a PEM CA certificate bundle",
     )
-    ssl_certfile: Optional[str] = Field(
+    ssl_certfile: str | None = Field(
         default=None,
         description="Filesystem path to a PEM client certificate",
     )
-    ssl_keyfile: Optional[str] = Field(
+    ssl_keyfile: str | None = Field(
         default=None,
         description="Filesystem path to a PEM client private key",
     )
@@ -153,15 +152,15 @@ class RabbitMQSettings(BaseSettings):
     # ------------------------------------------------------------------
     # Management HTTP API
     # ------------------------------------------------------------------
-    management_api_url: Optional[str] = Field(
+    management_api_url: str | None = Field(
         default=None,
         description=("Base URL of the RabbitMQ Management HTTP API (e.g. http://localhost:15672)"),
     )
-    management_username: Optional[str] = Field(
+    management_username: str | None = Field(
         default=None,
         description="Management API username (falls back to ``username``)",
     )
-    management_password: Optional[SecretStr] = Field(
+    management_password: SecretStr | None = Field(
         default=None,
         description=("Management API password stored as SecretStr (falls back to ``password``)"),
     )

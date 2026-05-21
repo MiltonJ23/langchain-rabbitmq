@@ -13,7 +13,7 @@ Example:
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -101,8 +101,8 @@ class MessageResult(_ImmutableModel):
     routing_key: str
     redelivered: bool
     headers: dict[str, Any] = Field(default_factory=dict)
-    content_type: Optional[str] = None
-    content_encoding: Optional[str] = None
+    content_type: str | None = None
+    content_encoding: str | None = None
 
 
 class BindingInfo(_ImmutableModel):
@@ -138,8 +138,8 @@ class ConnectionInfo(_ImmutableModel):
     host: str
     port: int
     virtual_host: str
-    server_version: Optional[str] = None
-    server_platform: Optional[str] = None
+    server_version: str | None = None
+    server_platform: str | None = None
     connected: bool = True
 
 

@@ -18,7 +18,7 @@ Example:
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from tenacity import (
     AsyncRetrying,
@@ -101,7 +101,7 @@ def make_sync_retry(settings: RabbitMQSettings) -> Retrying:
     """
     transient: tuple[type[BaseException], ...] = _pika_transient_exceptions()
 
-    retry_condition: Union[retry_if_exception_type, bool]
+    retry_condition: retry_if_exception_type | bool
     if transient:
         retry_condition = retry_if_exception_type(transient)
     else:
@@ -132,7 +132,7 @@ def make_async_retry(settings: RabbitMQSettings) -> AsyncRetrying:
     """
     transient: tuple[type[BaseException], ...] = _aio_pika_transient_exceptions()
 
-    retry_condition: Union[retry_if_exception_type, bool]
+    retry_condition: retry_if_exception_type | bool
     if transient:
         retry_condition = retry_if_exception_type(transient)
     else:

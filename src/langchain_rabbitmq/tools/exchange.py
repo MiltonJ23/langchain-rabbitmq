@@ -23,7 +23,7 @@ Example:
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -165,7 +165,7 @@ class DeclareExchangeTool(_RabbitMQBaseTool):
         exchange_type: ExchangeType = ExchangeType.DIRECT,
         durable: bool = False,
         auto_delete: bool = False,
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
         **_: Any,
     ) -> str:
         """Declare the exchange and return a summary string.
@@ -200,7 +200,7 @@ class DeclareExchangeTool(_RabbitMQBaseTool):
         exchange_type: ExchangeType = ExchangeType.DIRECT,
         durable: bool = False,
         auto_delete: bool = False,
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
         **_: Any,
     ) -> str:
         async with self._make_async_client() as client:
@@ -296,7 +296,7 @@ class BindExchangeTool(_RabbitMQBaseTool):
         destination: str,
         source: str,
         routing_key: str = "",
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
         **_: Any,
     ) -> str:
         with self._make_client() as client:
@@ -317,7 +317,7 @@ class BindExchangeTool(_RabbitMQBaseTool):
         destination: str,
         source: str,
         routing_key: str = "",
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
         **_: Any,
     ) -> str:
         async with self._make_async_client() as client:

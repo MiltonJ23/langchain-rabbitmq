@@ -12,7 +12,7 @@ description = "LangChain tools for interacting with RabbitMQ via AMQP and the Ma
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "MiltonJ23", email = "" }]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["langchain", "rabbitmq", "amqp", "tools", "agents", "llm"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -20,7 +20,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -73,7 +72,7 @@ packages = ["src/langchain_rabbitmq"]
 # Ruff: linting and formatting
 # ---------------------------------------------------------------------------
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length    = 100
 src            = ["src", "tests"]
 
@@ -94,8 +93,6 @@ select = [
 ]
 ignore = [
     "ANN401",  # Any is necessary for *args/**kwargs and LangChain callback signatures
-    "UP045",   # Optional[X] preferred over X | None for Python 3.9 runtime compat
-    "UP007",   # Union[X, Y] preferred over X | Y for Python 3.9 runtime compat
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -113,7 +110,7 @@ known-first-party = ["langchain_rabbitmq"]
 # ---------------------------------------------------------------------------
 [tool.pyrefly]
 project_includes = ["src"]
-python_version   = "3.9"
+python_version   = "3.10"
 
 # Suppress false positives from the Pydantic + LangChain BaseTool pattern:
 # subclasses override `args_schema` and `model_config` as class-level field

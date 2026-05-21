@@ -23,7 +23,7 @@ Example:
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -166,7 +166,7 @@ class ListQueuesTool(_RabbitMQBaseTool):
     args_schema: type[BaseModel] = _ListQueuesInput
 
     def _execute(self, vhost: str = "", **_: Any) -> str:  # type: ignore[override]
-        vhost_filter: Optional[str] = vhost or None
+        vhost_filter: str | None = vhost or None
         with ManagementAPIClient(self.settings) as mgmt:
             queues = mgmt.list_queues(vhost=vhost_filter)
         if not queues:
@@ -183,7 +183,7 @@ class ListQueuesTool(_RabbitMQBaseTool):
         return "\n".join(lines)
 
     async def _aexecute(self, vhost: str = "", **_: Any) -> str:  # type: ignore[override]
-        vhost_filter: Optional[str] = vhost or None
+        vhost_filter: str | None = vhost or None
         async with AsyncManagementAPIClient(self.settings) as mgmt:
             queues = await mgmt.list_queues(vhost=vhost_filter)
         if not queues:
@@ -223,7 +223,7 @@ class ListExchangesTool(_RabbitMQBaseTool):
         include_defaults: bool = False,
         **_: Any,
     ) -> str:
-        vhost_filter: Optional[str] = vhost or None
+        vhost_filter: str | None = vhost or None
         with ManagementAPIClient(self.settings) as mgmt:
             exchanges = mgmt.list_exchanges(vhost=vhost_filter)
         if not include_defaults:
@@ -249,7 +249,7 @@ class ListExchangesTool(_RabbitMQBaseTool):
         include_defaults: bool = False,
         **_: Any,
     ) -> str:
-        vhost_filter: Optional[str] = vhost or None
+        vhost_filter: str | None = vhost or None
         async with AsyncManagementAPIClient(self.settings) as mgmt:
             exchanges = await mgmt.list_exchanges(vhost=vhost_filter)
         if not include_defaults:
@@ -288,7 +288,7 @@ class ListBindingsTool(_RabbitMQBaseTool):
     args_schema: type[BaseModel] = _ListBindingsInput
 
     def _execute(self, vhost: str = "", **_: Any) -> str:  # type: ignore[override]
-        vhost_filter: Optional[str] = vhost or None
+        vhost_filter: str | None = vhost or None
         with ManagementAPIClient(self.settings) as mgmt:
             bindings = mgmt.list_bindings(vhost=vhost_filter)
         if not bindings:
@@ -303,7 +303,7 @@ class ListBindingsTool(_RabbitMQBaseTool):
         return "\n".join(lines)
 
     async def _aexecute(self, vhost: str = "", **_: Any) -> str:  # type: ignore[override]
-        vhost_filter: Optional[str] = vhost or None
+        vhost_filter: str | None = vhost or None
         async with AsyncManagementAPIClient(self.settings) as mgmt:
             bindings = await mgmt.list_bindings(vhost=vhost_filter)
         if not bindings:
@@ -339,7 +339,7 @@ class GetNodeStatsTool(_RabbitMQBaseTool):
     )
     args_schema: type[BaseModel] = _GetNodeStatsInput
 
-    def _execute(self, fields: Optional[list[str]] = None, **_: Any) -> str:  # type: ignore[override]
+    def _execute(self, fields: list[str] | None = None, **_: Any) -> str:  # type: ignore[override]
         selected = set(fields) if fields else set()
         with ManagementAPIClient(self.settings) as mgmt:
             nodes = mgmt.get_node_stats()
@@ -357,7 +357,7 @@ class GetNodeStatsTool(_RabbitMQBaseTool):
                 lines.append(f"  {k}: {v}")
         return "\n".join(lines)
 
-    async def _aexecute(self, fields: Optional[list[str]] = None, **_: Any) -> str:  # type: ignore[override]
+    async def _aexecute(self, fields: list[str] | None = None, **_: Any) -> str:  # type: ignore[override]
         selected = set(fields) if fields else set()
         async with AsyncManagementAPIClient(self.settings) as mgmt:
             nodes = await mgmt.get_node_stats()

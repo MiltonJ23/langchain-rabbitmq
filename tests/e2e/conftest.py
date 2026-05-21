@@ -7,7 +7,7 @@ settings, and an LLM factory.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -23,6 +23,8 @@ from langchain_rabbitmq.utilities._models import (
     HealthStatus,
     QueueInfo,
 )
+
+pytestmark = pytest.mark.e2e
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -62,7 +64,7 @@ class SequenceChatModel(BaseChatModel):
     def _generate(
         self,
         messages: list[BaseMessage],
-        stop: Optional[list[str]] = None,
+        stop: list[str] | None = None,
         run_manager: Any = None,
         **kwargs: Any,
     ) -> ChatResult:

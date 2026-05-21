@@ -21,6 +21,8 @@ from langchain_rabbitmq.config import RabbitMQSettings
 from langchain_rabbitmq.utilities.async_rabbitmq import AsyncRabbitMQClient
 from langchain_rabbitmq.utilities.rabbitmq import RabbitMQClient
 
+pytestmark = pytest.mark.integration
+
 if TYPE_CHECKING:
     from collections.abc import Generator
 

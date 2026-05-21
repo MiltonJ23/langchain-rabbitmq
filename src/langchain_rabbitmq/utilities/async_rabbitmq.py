@@ -27,7 +27,7 @@ from __future__ import annotations
 import logging
 import ssl
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 import aio_pika  # type: ignore[import-untyped]
 import aio_pika.exceptions  # type: ignore[import-untyped]
@@ -79,10 +79,10 @@ class AsyncRabbitMQClient:
                     await client.ack_message(msg.delivery_tag)
     """
 
-    def __init__(self, settings: Optional[RabbitMQSettings] = None) -> None:
+    def __init__(self, settings: RabbitMQSettings | None = None) -> None:
         self._settings: RabbitMQSettings = settings or RabbitMQSettings()
-        self._connection: Optional[Any] = None  # aio_pika.RobustConnection
-        self._channel: Optional[Any] = None  # aio_pika.RobustChannel
+        self._connection: Any | None = None  # aio_pika.RobustConnection
+        self._channel: Any | None = None  # aio_pika.RobustChannel
         # Maps delivery_tag → IncomingMessage for manual ack/nack/reject
         self._pending_messages: dict[int, Any] = {}
 
@@ -98,7 +98,7 @@ class AsyncRabbitMQClient:
         """
         return self._settings.amqp_url
 
-    def _build_ssl_context(self) -> Optional[ssl.SSLContext]:
+    def _build_ssl_context(self) -> ssl.SSLContext | None:
         """Build an :class:`ssl.SSLContext` from settings, or ``None``.
 
         Returns:
@@ -204,9 +204,9 @@ class AsyncRabbitMQClient:
 
     async def __aexit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[Any],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: Any | None,
     ) -> None:
         await self.close()
 
@@ -222,7 +222,7 @@ class AsyncRabbitMQClient:
         exclusive: bool = False,
         auto_delete: bool = False,
         passive: bool = False,
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
     ) -> QueueInfo:
         """Declare or passively inspect a queue.
 
@@ -343,7 +343,7 @@ class AsyncRabbitMQClient:
         queue: str,
         exchange: str,
         routing_key: str = "",
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
     ) -> None:
         """Bind a queue to an exchange.
 
@@ -379,7 +379,7 @@ class AsyncRabbitMQClient:
         queue: str,
         exchange: str,
         routing_key: str = "",
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
     ) -> None:
         """Remove a queue-exchange binding.
 
@@ -435,7 +435,7 @@ class AsyncRabbitMQClient:
         durable: bool = False,
         auto_delete: bool = False,
         passive: bool = False,
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
     ) -> ExchangeInfo:
         """Declare or passively inspect an exchange.
 
@@ -506,7 +506,7 @@ class AsyncRabbitMQClient:
         destination: str,
         source: str,
         routing_key: str = "",
-        arguments: Optional[dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
     ) -> BindingInfo:
         """Create an exchange-to-exchange binding.
 
@@ -559,10 +559,10 @@ class AsyncRabbitMQClient:
         body: bytes,
         *,
         persistent: bool = False,
-        content_type: Optional[str] = None,
-        content_encoding: Optional[str] = None,
-        headers: Optional[dict[str, Any]] = None,
-        expiration: Optional[int] = None,
+        content_type: str | None = None,
+        content_encoding: str | None = None,
+        headers: dict[str, Any] | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Publish a single message.
 
@@ -612,7 +612,7 @@ class AsyncRabbitMQClient:
         queue: str,
         *,
         auto_ack: bool = False,
-    ) -> Optional[MessageResult]:
+    ) -> MessageResult | None:
         """Pull a single message via ``basic.get``.
 
         Args:
