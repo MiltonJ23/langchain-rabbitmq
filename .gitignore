@@ -24,10 +24,6 @@ vendor/
 .DS_Store
 Thumbs.db
 
-# Keys (never commit private keys; public key is safe to commit if needed)
-keys/private.pem
-keys/*.key
-
 # Virtual environments
 procEnv/
 lgrEnv/
@@ -61,3 +57,4 @@ uv.lock
 
 # Docs build output
 site/
+
